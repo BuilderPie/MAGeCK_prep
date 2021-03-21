@@ -51,14 +51,16 @@ load_gdata = function(gene_sum, folder){
 
 # ======================================================= #
 # ======================================================= #
-step4_median_lfc = function(folder){
+step4_median_lfc = function(folder, search_type){
   # ===== read gdata and match with contrast_table.txt
-  print(paste0("Start: merge lfc for ", folder))
+  print(paste0("Start: median lfc for ", folder))
   
   tbl = read.table(file.path(folder,'contrast_table.txt'), sep = "\t", header = T)
   qc_quantile_chebyshev = read.csv(file.path(folder, 'qc', 'quantile_chebyshev.csv'), row.names = 1)
   
   gene_sum = list.files(path = folder, pattern = "gene_summary.txt", recursive = T)
+  gene_sum = gene_sum[grep(paste0("^", search_type), gene_sum, ignore.case = T)]
+
   all_run =  dirname(gene_sum)
   study = paste0(gsub(".gene_summary.txt", "", basename(gene_sum)), "_", all_run)
   gene_sum = (gene_sum[which(qc_quantile_chebyshev[study, "autoQC"] == 1)])
@@ -126,8 +128,8 @@ step4_median_lfc = function(folder){
   RankView(rankdata = rankdata, main = fileTitle, top = 0, bottom = 0, genelist = topnames,
            filename = file.path(folder, 'results',fileName), width = 3, height = 1.8)
   
-  print(paste0("Finish: merge lfc for ", folder))
+  print(paste0("Finish: median lfc for ", folder))
 }
 # ======================================================= #
-step4_median_lfc(folder = opt$dir)
+step4_median_lfc(folder = opt$dir, search_type = 'rra')
 
