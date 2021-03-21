@@ -31,7 +31,7 @@ option_list = list(
               help="directory name that include 'contrast_table.txt' and 'median_lfc' results. Usually follow the pattern Model_Condition_Category_median_lfc.txt", metavar="character"),
   make_option(c("-o", "--output"), type="character", default=3, 
               help="output folder for merged lfc table and contrast table", metavar="character"))
-  
+
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
 
@@ -85,13 +85,41 @@ plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
   
   ind = unlist(lapply(plot_group, function(x) grep(x, annotation_row$Category)))
   if (length(ind > 0)){
+    df = t(LFC_heatmap[, ind, drop = FALSE])
     png(filename = file.path(output_dir, 'qc_heatmap', paste0("Heatmap_", paste(unlist(plot_group), collapse = "_"), ".png")), 
-        width = 24, height = ifelse(length(ind) < 12, 1.5+0.3*length(ind), 0.5*length(ind)), units = 'in', res = 300)
-    draw(Heatmap(t(LFC_heatmap[, ind]), col = colorRamp2(c(-4, 4), c("blue", "red")), column_title = '', name = "LFC",
-                 show_column_names = T, show_row_names = T))
+        width = 12, height = ifelse(length(ind) < 12, 1.8+0.3*length(ind), 0.5*length(ind)), units = 'in', res = 300)
+    col_map = colorRamp2(seq(-4, 4, length = 3), c("blue", "#EEEEEE", "red"), space = "RGB")
+    draw(Heatmap(df, na_col = "grey", col = col_map, name = "LFC", rect_gp = gpar(col = "white", lwd = 2),
+                 cluster_rows = FALSE, row_names_max_width = max_text_width(rownames(df), gp = gpar(fontsize = 12)),
+                 show_column_names = T, show_row_names = T, column_title = paste(unlist(plot_group), collapse = "_") ))
     dev.off() 
   }
-
+  
+}
+# ======================================================= #
+# ======================================================= #
+each_rankplot = function(ind, output_dir, gdata, signature, ann_category){
+  rankdata = as.numeric(gdata[, ind])
+  names(rankdata) = gdata$gene
+  
+  fileName = colnames(gdata)[ind]
+  RankView(rankdata = rankdata, main = fileName,
+           top = 0, bottom = 0, genelist = signature,
+           filename = file.path(output_dir, 'qc_rankplot', paste0(ann_category[ind], "_", fileName, ".png")),
+           width = 3, height = 1.8)
+}
+# ======================================================= #
+# ======================================================= #
+plot_rankplot = function(plot_group, output_dir, gdata, signature){
+  ann_category = sapply(strsplit(colnames(gdata), '_'), FUN = function(x) x[length(x)])
+  # if(!dir.exists(file.path(output_dir, 'qc_rankplot', paste(unlist(plot_group), collapse = "_")))) 
+  #   dir.create(file.path(output_dir, 'qc_rankplot', paste(unlist(plot_group), collapse = "_")), recursive = T)
+  
+  ind = unlist(lapply(plot_group, function(x) grep(x, ann_category)))
+  if (length(ind > 0)){
+    lapply(ind, each_rankplot, output_dir = output_dir, gdata = gdata, signature = signature, ann_category = ann_category)
+  }
+  
 }
 # ======================================================= #
 # ======================================================= #
@@ -108,38 +136,26 @@ qc_visual = function(gdata, output_dir, signature, plot_group){
   LFC_heatmap = LFC_heatmap[, filter_colSum]
   
   lapply(plot_group, plot_heatmap, output_dir=output_dir, LFC_heatmap=LFC_heatmap)
-  # for (i in 1:length(plot_group)){
-  #   # idx_group = which(annotation_row$Category %in% plot_group[[i]])
-  #   idx_group = vector()
-  #   for (j in 1:length(plot_group[[i]])){
-  #     idx_group = c(idx_group, grep(), which(annotation_row$Category %in% plot_group[[i]][j]))
-  #   }
-  #   colPal = rev(colorRampPalette(c("#c12603", "white", "#0073B6"), space = "Lab")(199))
-    # pheatmap::pheatmap(sig_LFC_scaled, limit = c(-6,6),color=colPal, breaks=breaks, border_color=NA,
-    # pheatmap::pheatmap(t(sig_LFC_scaled[, idx_group]), limit = c(-4,4), color=colPal,
-    #                    breaks = seq(-4, 4, length.out = 200),border_color=NA,
-    #                    cluster_row = FALSE, cluster_col = FALSE,
-    #                    annotation_row = annotation_row[idx_group, ],
-    #                    filename = file.path(path[['LFC_scaled_qc_path']], paste0("QC_Heatmap_scaled_", names(plot_group)[i], ".png")),
-    #                    width = 24, height = ifelse(length(idx_group) < 12, 0.3*12, 0.5*length(idx_group)),
-    #                    fontsize_row = 22, fontsize_col = 18, fontsize = 18,
-    #                    na_col = "grey")
-    # filename = file.path(path[['LFC_scaled_qc_path']], paste0("QC_Heatmap_scaled_", names(plot_group)[i], ".svg"))
-    # svglite(filename,
-    #         width = 24,
-    #         height = ifelse(length(idx_group) < 12, 0.3*12, 0.5*length(idx_group)),
-    #         system_fonts = list(sans = "Arial"))
-    # par(family = "sans")
-    # pheatmap::pheatmap(t(sig_LFC_scaled[, idx_group]), limit = c(-4,4), color=colPal,
-    #                    breaks = seq(-4, 4, length.out = 200),border_color=NA,
-    #                    cluster_row = FALSE, cluster_col = FALSE,
-    #                    annotation_row = annotation_row[idx_group, ],
-    #                    # filename = file.path(path[['LFC_scaled_qc_path']], paste0("QC_Heatmap_scaled_", names(plot_group)[i], ".png")),
-    #                    # width = 24, height = ifelse(length(idx_group) < 12, 0.3*12, 0.5*length(idx_group)),
-    #                    fontsize_row = 22, fontsize_col = 18, fontsize = 18,
-    #                    na_col = "grey")
-    # dev.off()
-  # }
+  lapply(plot_group, plot_rankplot, output_dir=output_dir, gdata=gdata, signature=signature)
+}
+# ======================================================= #
+# ======================================================= #
+load_contrast = function(contrast_table, folder){
+  tbl = read.table(file.path(folder, contrast_table), sep = "\t", header = T)
+  tbl = cbind(dirname(dirname(contrast_table)), basename(dirname(contrast_table)), tbl, 
+              t(unlist(strsplit(dirname(dirname(contrast_table)), split = "_"))))
+  colnames(tbl)[1:2] = c('DirName', 'SubDir')
+  colnames(tbl)[(dim(tbl)[2]-3):dim(tbl)[2]] = c('PMID', 'Last_Author', 'Journal', "Year")
+  return(tbl)
+}
+# ======================================================= #
+# ======================================================= #
+merge_contrast = function(folder, output_dir){
+  contrast_table = list.files(folder, pattern = "contrast_table.txt", recursive = T)
+  contrast_merge = do.call(rbind, (lapply(contrast_table, FUN = load_contrast, folder = folder)))
+  
+  write.table(x = contrast_merge, file = file.path(output_dir, paste0('all_contrast_table.txt')),
+              sep = '\t', quote = FALSE, row.names = F, col.names = T)
 }
 # ======================================================= #
 # ======================================================= #
@@ -165,8 +181,9 @@ step6_merge_tables = function(folder, output_dir, signature, plot_group){
                 sep = '\t', quote = FALSE, row.names = F, col.names = T)
     
     qc_visual(gdata_merge, output_dir, signature, plot_group)
+    merge_contrast(folder, output_dir)
   }
-
+  
   print(paste0("Finish: merge lfc for ", folder))
 }
 # ======================================================= #
