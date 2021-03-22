@@ -140,25 +140,6 @@ qc_visual = function(gdata, output_dir, signature, plot_group){
 }
 # ======================================================= #
 # ======================================================= #
-load_contrast = function(contrast_table, folder){
-  tbl = read.table(file.path(folder, contrast_table), sep = "\t", header = T)
-  tbl = cbind(dirname(dirname(contrast_table)), basename(dirname(contrast_table)), tbl, 
-              t(unlist(strsplit(dirname(dirname(contrast_table)), split = "_"))))
-  colnames(tbl)[1:2] = c('DirName', 'SubDir')
-  colnames(tbl)[(dim(tbl)[2]-3):dim(tbl)[2]] = c('PMID', 'Last_Author', 'Journal', "Year")
-  return(tbl)
-}
-# ======================================================= #
-# ======================================================= #
-merge_contrast = function(folder, output_dir){
-  contrast_table = list.files(folder, pattern = "contrast_table.txt", recursive = T)
-  contrast_merge = do.call(rbind, (lapply(contrast_table, FUN = load_contrast, folder = folder)))
-  
-  write.table(x = contrast_merge, file = file.path(output_dir, paste0('all_contrast_table.txt')),
-              sep = '\t', quote = FALSE, row.names = F, col.names = T)
-}
-# ======================================================= #
-# ======================================================= #
 step6_merge_tables = function(folder, output_dir, signature, plot_group){
   # ===== read gdata and match with contrast_table.txt
   print(paste0("Start: normalize median lfc for ", folder))
@@ -181,7 +162,6 @@ step6_merge_tables = function(folder, output_dir, signature, plot_group){
                 sep = '\t', quote = FALSE, row.names = F, col.names = T)
     
     qc_visual(gdata_merge, output_dir, signature, plot_group)
-    merge_contrast(folder, output_dir)
   }
   
   print(paste0("Finish: merge lfc for ", folder))

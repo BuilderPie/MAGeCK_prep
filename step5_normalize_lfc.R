@@ -37,10 +37,6 @@ if (is.null(opt$dir)){
   print_help(opt_parser)
   stop("At least one argument must be supplied (-d / --dir)", call.=FALSE)
 }
-
-# ================================================================= #
-# ================================================================= #
-
 # ======================================================= #
 # ======================================================= #
 load_gdata = function(gene_sum, folder, max_limit){
@@ -65,7 +61,17 @@ load_gdata = function(gene_sum, folder, max_limit){
   }
   return(gdata)
 }
-
+# ======================================================= #
+# ======================================================= #
+merge_contrast = function(folder, gene_sum_name){
+  contrast_tmp = file.path(folder, paste0(gene_sum_name, "_tmp_contrast.txt"))
+  if (any(file.exists(contrast_tmp))){
+    contrast_merge = do.call(rbind, lapply(contrast_tmp, FUN = function(x) read.table(x, sep = "\t", header = T)))
+    write.table(x = contrast_merge, file = file.path(folder, paste0('contrast_table_merge.txt')),
+                sep = '\t', quote = FALSE, row.names = F, col.names = T)
+    file.remove(contrast_tmp)
+  }
+}
 # ======================================================= #
 # ======================================================= #
 step5_normalize_lfc = function(folder, max_limit){
@@ -81,6 +87,8 @@ step5_normalize_lfc = function(folder, max_limit){
     colnames(gdata_merge)[-1] = gene_sum_name
     write.table(x = gdata_merge, file = file.path(folder, paste0(basename(folder), '_normalized_lfc.txt')), 
                 sep = '\t', quote = FALSE, row.names = F, col.names = T)
+    # === merge contrast tables and delete tmp files
+    merge_contrast(folder, gene_sum_name)
   }
 
   print(paste0("Finish: merge lfc for ", folder))

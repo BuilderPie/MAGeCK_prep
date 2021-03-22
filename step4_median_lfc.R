@@ -64,6 +64,7 @@ step4_median_lfc = function(folder, search_type){
   all_run =  dirname(gene_sum)
   study = paste0(gsub(".gene_summary.txt", "", basename(gene_sum)), "_", all_run)
   gene_sum = (gene_sum[which(qc_quantile_chebyshev[study, "autoQC"] == 1)])
+  tbl = tbl[which(qc_quantile_chebyshev[study, "autoQC"] == 1), , drop = FALSE] # keep contast table rows pass auto qc
   
   if (length(gene_sum)>0){
     gdata_merge = do.call(rbind, (lapply(gene_sum, FUN = load_gdata, folder = folder)))
@@ -117,16 +118,24 @@ step4_median_lfc = function(folder, search_type){
     fileName = paste0(basename(folder), "_median_lfc.txt")
     write.table(x = gdata_median, file = file.path(folder, 'results',fileName),
                 sep = '\t', quote = FALSE, row.names = F, col.names = T)
+    # extend contrast table and save as tmp file for bext step merge
+    tbl = cbind(basename(dirname(folder)), basename(folder), tbl, 
+                t(unlist(strsplit(basename(dirname(folder)), split = "_"))), Sys.Date())
+    colnames(tbl)[1:2] = c('DirName', 'SubDir')
+    colnames(tbl)[(dim(tbl)[2]-4):dim(tbl)[2]] = c('PMID', 'Last_Author', 'Journal', "Year", "Data_QC")
+    write.table(x = tbl, file = file.path(dirname(folder), paste0(basename(folder), "_tmp_contrast.txt")),
+                sep = '\t', quote = FALSE, row.names = F, col.names = T)
+    # =========================================== #
+    # === visualize
+    rankdata = gdata_median$LFC
+    names(rankdata) = gdata_median$gene
+    fileName = paste0(basename(folder), "_median_lfc_rankPlot.png")
+    fileTitle = paste0(basename(folder), "_median_lfc")
+    RankView(rankdata = rankdata, main = fileTitle, top = 0, bottom = 0, genelist = topnames,
+             filename = file.path(folder, 'results',fileName), width = 3, height = 1.8)
   }
   
-  # =========================================== #
-  # === visualize
-  rankdata = gdata_median$LFC
-  names(rankdata) = gdata_median$gene
-  fileName = paste0(basename(folder), "_median_lfc_rankPlot.png")
-  fileTitle = paste0(basename(folder), "_median_lfc")
-  RankView(rankdata = rankdata, main = fileTitle, top = 0, bottom = 0, genelist = topnames,
-           filename = file.path(folder, 'results',fileName), width = 3, height = 1.8)
+  
   
   print(paste0("Finish: median lfc for ", folder))
 }
