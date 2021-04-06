@@ -35,16 +35,29 @@ if (is.null(opt$dir)){
   stop("At least one argument must be supplied (-d / --dir)", call.=FALSE)
 }
 # ======================================================= #
-step2_run_mageck_vispr = function(folder, run, dryrun){
+#' Submit bash file to run MAGeCK count and rra / mle modules.
+#' @param folder input from command line; path to the study folder with bash command files .
+#' @param run input from command line; which MAGeCK module to run. Selection is rra or mle. Default is 'rra'.
+step2_run_mageck_vispr = function(folder, run){
+  
+  # bash method without setwd()
+  # system(paste0("bash ", file.path(folder, "run_mageck_count.sh")))
+  # if (any(grepl("rra", run, ignore.case = T))) system(paste0("bash ", file.path(folder, "run_mageck_rra.sh")))
+  # if (any(grepl("mle", run, ignore.case = T))) system(paste0("bash ", file.path(folder, "run_mageck_mle.sh")))
+  
+  # bash method with setwd()
   cur_wd = getwd()
   setwd(folder)
   
   system(paste0("bash run_mageck_count.sh"))
   if (any(grepl("rra", run, ignore.case = T))) system(paste0("bash run_mageck_rra.sh"))
   if (any(grepl("mle", run, ignore.case = T))) system(paste0("bash run_mageck_mle.sh"))
-
+  
   setwd(cur_wd)
 }
 # ======================================================= #
-step2_run_mageck_vispr(folder = opt$dir, run = opt$run, dryrun = FALSE)
+#' Main function, which passes command line args to step1_prepare_files
+#' @param folder input from command line; path to the study folder with bash command files .
+#' @param run input from command line; which MAGeCK module to run. Selection is rra or mle. Default is 'rra'.
+step2_run_mageck_vispr(folder = opt$dir, run = opt$run)
 
