@@ -5,7 +5,7 @@
 # Email: lidian@zju.edu.cn
 # --------------
 # About project: extract RRA / MLE results to LFC file.
-rm(list = ls())
+# rm(list = ls())
 # cat('\014')
 # ======================================================= #
 load_package = function(pkgs){
@@ -17,7 +17,7 @@ load_package = function(pkgs){
     suppressWarnings(suppressMessages(invisible(require(el, character.only=TRUE))))
   }
 }
-load_package(c('optparse'))
+# load_package(c('optparse'))
 load_package(c('ggplot2'))
 # load_package(c('ggrepel'))
 load_package(c('ComplexHeatmap'))
@@ -26,27 +26,27 @@ load_package(c('circlize'))
 source('utils.R')
 # load_package(c('MAGeCKFlute'))
 # ======================================================= #
-option_list = list(
-  make_option(c("-r", "--rawcount"), type="character", default=NULL, 
-              help="path to rawcount file. Usually follow the pattern of rawcount.txt", metavar="character"),
-  make_option(c("-c", "--contrast"), type="character", default=NULL, 
-              help="path to contrast table file. Usually follow the pattern of contrast_table.txt", metavar="character"))
-  
-opt_parser = OptionParser(option_list=option_list);
-opt = parse_args(opt_parser);
-
-if (is.null(opt$rawcount)){
-  print_help(opt_parser)
-  stop("At least one argument must be supplied (-f / --file)", call.=FALSE)
-}
+# option_list = list(
+#   make_option(c("-c", "--contrast"), type="character", default=NULL, 
+#               help="path to contrast table file. Usually follow the pattern of contrast_table.txt", metavar="character"),
+#   make_option(c("-r", "--rawcount"), type="character", default=NULL, 
+#               help="path to rawcount file. Usually follow the pattern of rawcount.txt", metavar="character"))
+#   
+# opt_parser = OptionParser(option_list=option_list);
+# opt = parse_args(opt_parser);
+# 
+# if (is.null(opt$rawcount)){
+#   print_help(opt_parser)
+#   stop("At least one argument must be supplied (-f / --file)", call.=FALSE)
+# }
 # ======================================================= #
 # ======================================================= #
 #' Sub function, which read contrast table and rawcount data
 #' @param contrast input from command line; path to contrast table.
 #' @param rawcount input from command line; path to rawcount/rawcount.txt.
 read_rawcount = function(contrast, rawcount){
-  contrast = read.table(contrast, sep = "\t", header = T, check.names = F)
-  rawcount = read.table(rawcount, sep = "\t", header = T, check.names = F)
+  contrast = read.table(contrast, sep = "\t", header = T, check.names = F, fill = T)
+  rawcount = read.table(rawcount, sep = "\t", header = T, check.names = F, fill = T)
   # print(head(rawcount))
   df_out = list(rawcount = rawcount, 
                 treatment = unlist(strsplit(as.vector(contrast$Sample), split = '\\,|\\;')),
@@ -65,6 +65,7 @@ step3a_qc_pre_pca = function(contrast, rawcount){
     
 
     df = as.data.frame(t(df_list[["rawcount"]][, c(df_list[["treatment"]], df_list[["control"]])]))
+    df = df[ , colSums(is.na(df)) == 0]
     pca_res <- prcomp(df)
     
     df$condition = c(rep("Treatment", length(df_list[["treatment"]])), rep("Control", length(df_list[["control"]])))
@@ -116,5 +117,5 @@ step3a_qc_pre_pca = function(contrast, rawcount){
 #' Main function, which passes command line args to step3b_qc_post_visual
 #' @param contrast input from command line; path to contrast table.
 #' @param rawcount input from command line; path to rawcount/rawcount.txt.
-step3a_qc_pre_pca(contrast = opt$contrast, rawcount = opt$rawcount)
+# step3a_qc_pre_pca(contrast = opt$contrast, rawcount = opt$rawcount)
 

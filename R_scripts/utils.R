@@ -1,9 +1,22 @@
 # --------------
-# Date:  2020-09-29 22:00:00
+# Date:  2021-04-10 22:00:00
 # Author:Dian Li
 # Email: lidian@zju.edu.cn
 # --------------
 # utils functions for rra data post process
+
+# ================================================================= #
+# ================================================================= #
+posControl = c("HLA-A", "HLA-B", "HLA-C", "B2M", "TAP1", "TAPBP", "HLA-E", "HLA-F",
+               "STAT1", "IRF1", "CD274", "IFNGR1", "IFNGR2", "CARM1",
+               "CASP8", "TRADD", "FADD", "TRAPPC12", "MPV17L2",
+               "CD40", "GATA3", "XBP1", "IRF4", "IL4", "IL13", "FOXP3", "LAG3",
+               "ADAR", "PTPN2", "DCAF15", "CD3D", "LCP2", "CD5", "CBLB", "UBE2N", "MYC")
+
+plotGroup = list(essentiality = c('Essentiality', 'SyntheticLethal'),
+                 sorting = c('Sorting'),
+                 coculture = c('Coculture-NK', 'Coculture-T', 'Coculture-Tumor'),
+                 invivo = c('Invivo'))
 
 # ========================================================================= #
 # ========================================================================= #
@@ -107,8 +120,48 @@ read_geneSum = function(contrast, geneSum){
   df_out = list(gdata = gdata, run = run, annorow = annorow, topnames = topnames)
   return(df_out)
 }
+# ========================================================================= #
+# ========================================================================= #
+# ===== extract main dir and subdir (optional) from folder path.
+# ===== only supports 2-level searching 
+dir_check = function(folder){
+  DirName = SubDir = "E"
+  tmp = unlist(strsplit(basename(folder), "_"))
+  if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+    DirName = basename(folder)
+  } else {
+    tmp = unlist(strsplit(basename(dirname(folder)), "_"))
+    if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+      DirName = basename(dirname(folder))
+      SubDir = basename(folder)
+    }
+  }
+  return(c(DirName, SubDir))
+}
 
-
+# ========================================================================= #
+# ========================================================================= #
+# ===== extract main dir and subdir (optional) from folder path.
+# ===== only supports 2-level searching 
+dir_check_merge = function(folder){
+  DirName = SubDir = "E"
+  tmp = unlist(strsplit(basename(folder), "_"))
+  if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+    DirName = basename(folder)
+  } else {
+    tmp = unlist(strsplit(basename(dirname(folder)), "_"))
+    if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+      DirName = basename(dirname(folder))
+    } else{
+      tmp = unlist(strsplit(basename(dirname(dirname(folder))), "_"))
+      if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+        DirName = basename(dirname(dirname(folder)))
+        SubDir = basename(dirname(folder))
+      }
+    }
+  }
+  return(c(DirName, SubDir))
+}
 # ========================================================================= #
 # ========================================================================= #
 # customized RankView to replace parameters of original RankView in MAGeCKFlute

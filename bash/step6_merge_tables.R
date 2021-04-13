@@ -5,7 +5,7 @@
 # Email: lidian@zju.edu.cn
 # --------------
 # About project: extract RRA / MLE results to LFC file.
-rm(list = ls())
+# rm(list = ls())
 # cat('\014')
 # ======================================================= #
 load_package = function(pkgs){
@@ -17,7 +17,7 @@ load_package = function(pkgs){
     suppressWarnings(suppressMessages(invisible(require(el, character.only=TRUE))))
   }
 }
-load_package(c('optparse'))
+# load_package(c('optparse'))
 load_package(c('ggplot2'))
 load_package(c('ggrepel'))
 load_package(c('ComplexHeatmap'))
@@ -26,24 +26,24 @@ source('utils.R')
 # load_package(c('MAGeCKFlute'))
 # ================================================================= #
 # ================================================================= #
-option_list = list(
-  make_option(c("-d", "--dir"), type="character", default=NULL, 
-              help="directory name that include 'contrast_table.txt' and 'median_lfc' results. Usually follow the pattern Model_Condition_Category_median_lfc.txt", metavar="character"),
-  make_option(c("-o", "--output"), type="character", default=3, 
-              help="output folder for merged lfc table and contrast table", metavar="character"))
-
-opt_parser = OptionParser(option_list=option_list);
-opt = parse_args(opt_parser);
-
-if (is.null(opt$dir)){
-  print_help(opt_parser)
-  stop("At least one argument must be supplied (-d / --dir)", call.=FALSE)
-}
-
-if (is.null(opt$output)){
-  print_help(opt_parser)
-  stop("At least one argument must be supplied (-o / --output)", call.=FALSE)
-}
+# option_list = list(
+#   make_option(c("-d", "--dir"), type="character", default=NULL, 
+#               help="directory name that include 'contrast_table.txt' and 'median_lfc' results. Usually follow the pattern Model_Condition_Category_median_lfc.txt", metavar="character"),
+#   make_option(c("-o", "--output"), type="character", default=3, 
+#               help="output folder for merged lfc table and contrast table", metavar="character"))
+# 
+# opt_parser = OptionParser(option_list=option_list);
+# opt = parse_args(opt_parser);
+# 
+# if (is.null(opt$dir)){
+#   print_help(opt_parser)
+#   stop("At least one argument must be supplied (-d / --dir)", call.=FALSE)
+# }
+# 
+# if (is.null(opt$output)){
+#   print_help(opt_parser)
+#   stop("At least one argument must be supplied (-o / --output)", call.=FALSE)
+# }
 
 # ================================================================= #
 # ================================================================= #
@@ -167,5 +167,5 @@ step6_merge_tables = function(folder, output_dir, signature, plot_group){
   print(paste0("Finish: merge lfc for ", folder))
 }
 # ======================================================= #
-step6_merge_tables(folder = opt$dir, output_dir = opt$output, signature, plot_group)
+# step6_merge_tables(folder = opt$dir, output_dir = opt$output, signature, plot_group)
 

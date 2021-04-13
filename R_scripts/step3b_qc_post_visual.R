@@ -5,7 +5,7 @@
 # Email: lidian@zju.edu.cn
 # --------------
 # About project: extract RRA / MLE results to LFC file.
-rm(list = ls())
+# rm(list = ls())
 # cat('\014')
 # ======================================================= #
 load_package = function(pkgs){
@@ -17,28 +17,28 @@ load_package = function(pkgs){
     suppressWarnings(suppressMessages(invisible(require(el, character.only=TRUE))))
   }
 }
-load_package(c('optparse'))
+# load_package(c('optparse'))
 load_package(c('ggplot2'))
 load_package(c('ggrepel'))
-load_package(c('ComplexHeatmap'))
-load_package(c('ggfortify'))
-load_package(c('circlize'))
+# load_package(c('ComplexHeatmap'))
+# load_package(c('ggfortify'))
+# load_package(c('circlize'))
 source('utils.R')
 # load_package(c('MAGeCKFlute'))
 # ======================================================= #
-option_list = list(
-  make_option(c("-g", "--geneSum"), type="character", default=NULL, 
-              help="path to gene summary file. Usually follow the pattern of gene_summary.txt", metavar="character"),
-  make_option(c("-c", "--contrast"), type="character", default=NULL, 
-              help="path to contrast table file. Usually follow the pattern of contrast_table.txt", metavar="character"))
-
-opt_parser = OptionParser(option_list=option_list);
-opt = parse_args(opt_parser);
-
-if (is.null(opt$geneSum)){
-  print_help(opt_parser)
-  stop("At least one argument must be supplied (-g / --geneSum)", call.=FALSE)
-}
+# option_list = list(
+#   make_option(c("-c", "--contrast"), type="character", default=NULL, 
+#               help="path to contrast table file. Usually follow the pattern of contrast_table.txt", metavar="character"),
+#   make_option(c("-g", "--geneSum"), type="character", default=NULL, 
+#               help="path to gene summary file. Usually follow the pattern of gene_summary.txt", metavar="character"))
+# 
+# opt_parser = OptionParser(option_list=option_list);
+# opt = parse_args(opt_parser);
+# 
+# if (is.null(opt$geneSum)){
+#   print_help(opt_parser)
+#   stop("At least one argument must be supplied (-g / --geneSum)", call.=FALSE)
+# }
 
 # ======================================================= #
 # ======================================================= #
@@ -60,12 +60,12 @@ step3b_qc_post_visual = function(contrast, geneSum){
   # ===== volcano plot
   VolcanoView(gdata[["gdata"]], x = "Score", y = "FDR", Label = "id", main = fileTitle,
               top = 0, topnames = gdata[["topnames"]],
-              filename = file.path((gsub(paste0("/", tolower(gdata[["run"]]), "/.*"), "", geneSum)), 'qc', paste0(fileName, "_volcanoPlot.png")),
+              filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_volcanoPlot.png")),
               width = 3, height = 1.8)
   # ===== rank plot
   RankView(rankdata = rankdata, main = fileTitle,
            top = 0, bottom = 0, genelist = gdata[["topnames"]],
-           filename = file.path((gsub(paste0("/", tolower(gdata[["run"]]), "/.*"), "", geneSum)), 'qc', paste0(fileName, "_rankPlot.png")),
+           filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_rankPlot.png")),
            width = 3, height = 1.8)
   # ===== scatter plot
   set.seed(200)
@@ -76,7 +76,7 @@ step3b_qc_post_visual = function(contrast, geneSum){
                    groups = "bottom", group_col = 'blue',
                    toplabels = gdata[["topnames"]], ylab = "Log2FC",
                    main = fileTitle, display_cut = TRUE)
-  ggsave(plot = p1, filename = file.path((gsub(paste0("/", tolower(gdata[["run"]]), "/.*"), "", geneSum)), 'qc', paste0(fileName, "_scatterBottom.png")),
+  ggsave(plot = p1, filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_scatterBottom.png")),
          width = 3, height = 1.8, units = 'in', dpi = 300)
   
   p2 = ScatterView(data = gdata[["gdata"]][gdata[["gdata"]]$Score>=0, ], x = "RandomIndex", y = "Score",
@@ -84,7 +84,7 @@ step3b_qc_post_visual = function(contrast, geneSum){
                    groups = "top", group_col = 'red',
                    toplabels = gdata[["topnames"]], ylab = "Log2FC",
                    main = fileTitle, display_cut = TRUE)
-  ggsave(plot = p2, filename = file.path((gsub(paste0("/", tolower(gdata[["run"]]), "/.*"), "", geneSum)), 'qc', paste0(fileName, "_scatterTop.png")),
+  ggsave(plot = p2, filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_scatterTop.png")),
          width = 3, height = 1.8, units = 'in', dpi = 300)
   # ===== histogram
   gdata[["gdata"]]$sign = rep("0", dim(gdata[["gdata"]])[1])
@@ -95,7 +95,7 @@ step3b_qc_post_visual = function(contrast, geneSum){
     geom_histogram(fill="white",binwidth=0.2, alpha=0.5, position="identity") +
     labs(title = fileTitle, x = "Log2FC", y = "Count") +
     theme(text = element_text(size=6))
-  ggsave(plot = p3, filename = file.path(gsub(paste0("/", tolower(gdata[["run"]]), "/.*"), "", geneSum), 'qc', paste0(fileName, "_histogram.png")),
+  ggsave(plot = p3, filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_histogram.png")),
          width = 3, height = 1.8, units = 'in', dpi = 300)
   # =====
   print(paste0("Finish: post QC visual for ", geneSum))
@@ -105,4 +105,4 @@ step3b_qc_post_visual = function(contrast, geneSum){
 #' Main function, which passes command line args to step3b_qc_post_visual
 #' @param contrast input from command line; path to contrast table.
 #' @param geneSum input from command line; path to gene_summary.txt from MAGeCK rra run.
-step3b_qc_post_visual(contrast = opt$contrast, geneSum = opt$geneSum)
+# step3b_qc_post_visual(contrast = opt$contrast, geneSum = opt$geneSum)

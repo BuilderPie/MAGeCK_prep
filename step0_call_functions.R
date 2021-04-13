@@ -1,0 +1,90 @@
+#!/usr/bin/env Rscript
+# --------------
+# Date:  2021-04-26 19:00:10
+# Author:Dian Li
+# Email: lidian@zju.edu.cn
+# --------------
+# About project: to organize and call each step function
+# rm(list = ls())
+# cat('\014')
+# ======================================================= #
+load_package = function(pkgs){
+  if(!is.element('BiocManager', installed.packages()[,1])){
+    install.packages('BiocManager')
+  }
+  for(el in pkgs){
+    if (!is.element(el, installed.packages()[,1]))BiocManager::install(el)
+    suppressWarnings(suppressMessages(invisible(require(el, character.only=TRUE))))
+  }
+}
+load_package(c('optparse'))
+# load_package(c('MAGeCKFlute'))
+# source("step3b_qc_post_visual.")
+# ======================================================= #
+option_list = list(
+  make_option(c("-d", "--dir"), type="character", default=NULL, 
+              help="directory name that contains all the first level study folder", metavar="character"),
+  make_option(c("-p", "--rpath"), type="character", default=NULL, 
+              help="directory name that contains all the R function steps", metavar="character"),
+  make_option(c("-o", "--output"), type="character", default=NULL, 
+              help="directory name that save the merged lfc table and final qc plots", metavar="character"))
+
+opt_parser = OptionParser(option_list=option_list);
+opt = parse_args(opt_parser);
+
+if (is.null(opt$dir)){
+  print_help(opt_parser)
+  stop("The following argument must be supplied (-d / --dir)", call.=FALSE)
+}
+
+if (is.null(opt$rpath)){
+  print_help(opt_parser)
+  stop("The following argument must be supplied (-p / --rPath)", call.=FALSE)
+}
+
+# ======================================================= #
+#' Detect folders and call each step function
+#' @param folder input from command line; path to the folder which contains all studies.
+#' @param study input from command line; name of specific studies inside the folder.
+step0_call_functions = function(folder, rPath, output_dir=NULL){
+  cur_wd = getwd()
+  setwd(rPath)
+  lapply(list.files(pattern = "[.]R$", recursive = TRUE), source)
+  setwd(cur_wd)
+  
+  contrast = list.files(folder, pattern = "contrast_table.txt", recursive = T, full.names = T, ignore.case = T)
+  
+  for (i in contrast){
+    # contrast_tbl = read.table(i, sep = "\t", header = T, check.names = F)
+    # step1_prepare_files(dirname(i))
+    # step2_run_mageck_vispr(dirname(i), run = "rra")
+    # step3a_qc_pre_pca(contrast = i,
+    #                   rawcount = list.files(dirname(i), pattern = as.character(contrast_tbl$Count_File[1]), recursive = T, full.names = T, ignore.case = T))
+  }
+  
+  geneSumList = lapply(contrast, FUN = function(x) {
+    list.files(dirname(x), pattern = "gene_summary.txt", recursive = T, full.names = T, ignore.case = T)
+  })
+
+  for (i in 1:length(geneSumList)){
+    if (length(geneSumList[[i]]) > 0){
+      # geneSum = geneSumList[[i]]
+      # lapply(geneSum, FUN = step3b_qc_post_visual, contrast = contrast[i])
+      # lapply(geneSum, FUN = step3c_qc_post_table, contrast = contrast[i])
+    }
+  }
+  
+  for (i in 1:length(contrast)){
+    # step4a_median_lfc(folder = dirname(contrast[i]))
+    # step4b_median_lfc_visual(folder = dirname(contrast[i]))
+    # step5_normalize_lfc(folder = dirname(contrast[i]), max_limit = 2)
+  }
+  
+  step6a_merge_tables(folder, output_dir)
+  step6b_merge_tables_visual_heatmap(folder, output_dir)
+  step6c_merge_tables_visual_rankplot(folder, output_dir)
+}
+# ======================================================= #
+#' Main function, which passes command line args to step0_call_functions
+#' @param folder input from command line; path to the folder which contains studies.
+step0_call_functions(folder = opt$dir, rPath = opt$rpath, output_dir = opt$output)

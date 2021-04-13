@@ -123,7 +123,7 @@ step4_median_lfc = function(folder, search_type){
                 t(unlist(strsplit(basename(dirname(folder)), split = "_"))), Sys.Date())
     colnames(tbl)[1:2] = c('DirName', 'SubDir')
     colnames(tbl)[(dim(tbl)[2]-4):dim(tbl)[2]] = c('PMID', 'Last_Author', 'Journal', "Year", "Data_QC")
-    write.table(x = tbl, file = file.path(dirname(folder), paste0(basename(folder), "_tmp_contrast.txt")),
+    write.table(x = tbl, file = file.path(dirname(folder), paste0(basename(folder), "_contrast_extend_tmp.txt")),
                 sep = '\t', quote = FALSE, row.names = F, col.names = T)
     # =========================================== #
     # === visualize
