@@ -55,11 +55,10 @@ step0_call_functions = function(folder, rPath, output_dir=NULL){
   contrast = list.files(folder, pattern = "contrast_table.txt", recursive = T, full.names = T, ignore.case = T)
   
   for (i in contrast){
-    # contrast_tbl = read.table(i, sep = "\t", header = T, check.names = F)
     # step1_prepare_files(dirname(i))
     # step2_run_mageck_vispr(dirname(i), run = "rra")
-    # step3a_qc_pre_pca(contrast = i,
-    #                   rawcount = list.files(dirname(i), pattern = as.character(contrast_tbl$Count_File[1]), recursive = T, full.names = T, ignore.case = T))
+    step3a_qc_pre_pca(contrast = i)
+    #                   
   }
   
   geneSumList = lapply(contrast, FUN = function(x) {

@@ -55,7 +55,8 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
   # col_tmp = colnames(LFC_heatmap)
   colnames(LFC_heatmap) = sapply(strsplit(colnames(LFC_heatmap), '_'), FUN = function(x){
     if (length(x) == 8){
-      paste(x[2], x[3], x[4], x[5], x[6],sep = '_')
+      # paste(x[2], x[3], x[4], x[5], x[6],sep = '_')
+      paste(x[2], x[4], x[5], x[6],sep = '_')
     }
   })
   rownames(annotation_row) = colnames(LFC_heatmap)
@@ -83,7 +84,7 @@ step6b_merge_tables_visual_heatmap = function(folder, output_dir){
   # if(!dir.exists(file.path(output_dir, 'qc_rankplot'))) dir.create(file.path(output_dir, 'qc_rankplot'), recursive = T)
   # if(!dir.exists(file.path(output_dir, 'qc_tables'))) dir.create(file.path(output_dir, 'qc_tables'), recursive = T)
   
-  gdata_merge = read.table(file.path(output_dir, "all_lfc_normalized.txt"), header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F)
+  gdata_merge = read.table(file.path(output_dir, "all_lfc_normalized.txt"), header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
   # === map positive control genes to merged normalized table
   ind_gene = grep(paste0('^', (paste(posControl, collapse = '$|^')), '$'), gdata_merge$gene)
   LFC_heatmap = gdata_merge[ind_gene, -1]

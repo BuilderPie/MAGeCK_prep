@@ -70,6 +70,7 @@ step6a_merge_tables = function(folder, output_dir){
     }
   }
   write.table(x = gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.txt')), sep = '\t', quote = FALSE, row.names = F, col.names = T)
+  saveRDS(gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.RDS')))
   # print(head(gdata_merge))
   # if (length(norm_lfc)>0){
   #   # names(gene_sum) = gene_sum_name

@@ -51,10 +51,10 @@ prepare_folder = function(folder){
 #' Prepare bash commend to run count module.
 #' @param unique_ind row indices of contrast table for all replicates of one study design.
 #' @param contrast contrast table
-cmd_count_prep = function(unique_ind, contrast){
+cmd_count_prep = function(unique_count_file_ind, contrast){
   # file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
   # cmd_count = paste0("mageck count -k rawcount/", contrast$Count_File[unique_ind]," -l lib/library.csv --norm-method ", contrast$Norm_method[unique_ind], " -n count/", file_name)
-  cmd_count = paste0("mageck count -k rawcount/", contrast$Count_File[1]," -l lib/library.csv --norm-method ", contrast$Norm_method[1], " -n count/", "test")
+  cmd_count = paste0("mageck count -k rawcount/", contrast$Count_File[unique_count_file_ind[1]]," -l lib/library.csv --norm-method ", contrast$Norm_method[1], " -n count/", gsub(".txt", "", contrast$Count_File[unique_count_file_ind[1]]))
   
   return(cmd_count)
 }
@@ -65,8 +65,9 @@ cmd_count_prep = function(unique_ind, contrast){
 #' @param contrast contrast table
 cmd_rra_prep = function(unique_ind, contrast){
   file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
+  count_name = gsub(".txt", "", contrast$Count_File[unique_ind])
   # cmd_rra = paste0("mageck test -k count/", file_name, ".count_normalized.txt -c ", contrast$Control[unique_ind], " -t ", contrast$Sample[unique_ind], " --norm-method ", contrast$Norm_method[unique_ind], " -n rra/", file_name)
-  cmd_rra = paste0("mageck test -k count/", "test", ".count_normalized.txt -c ", contrast$Control[unique_ind], " -t ", contrast$Sample[unique_ind], " --norm-method ", contrast$Norm_method[unique_ind], " -n rra/", file_name)
+  cmd_rra = paste0("mageck test -k count/", count_name, ".count_normalized.txt -c ", contrast$Control[unique_ind], " -t ", contrast$Sample[unique_ind], " --norm-method ", contrast$Norm_method[unique_ind], " -n rra/", file_name)
   
   return(cmd_rra)
 }
@@ -77,8 +78,9 @@ cmd_rra_prep = function(unique_ind, contrast){
 #' @param contrast contrast table
 cmd_mle_prep = function(unique_ind, contrast){
   file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
+  count_name = gsub(".txt", "", contrast$Count_File[unique_ind])
   # cmd_mle = sapply(X = 1:length(unique_ind), FUN = function(i) paste0("mageck mle -k count/", file_name[i], ".count_normalized.txt -d designmatrix/designmatrix_", i, ".txt", " --norm-method ", contrast$Norm_method[unique_ind[i]], " -n mle/", file_name[i]))
-  cmd_mle = sapply(X = 1:length(unique_ind), FUN = function(i) paste0("mageck mle -k count/", "test", ".count_normalized.txt -d designmatrix/designmatrix_", i, ".txt", " --norm-method ", contrast$Norm_method[unique_ind[i]], " -n mle/", file_name[i]))
+  cmd_mle = paste0("mageck mle -k count/", count_name, ".count_normalized.txt -d designmatrix/designmatrix_", ".txt", " --norm-method ", contrast$Norm_method[unique_ind], " -n mle/", file_name)
   
   return(cmd_mle)
 }
@@ -87,14 +89,17 @@ cmd_mle_prep = function(unique_ind, contrast){
 #' Prepare bash files to run MAGeCK rra and mle modules.
 #' @param folder path to the study folder which contains one contrast_table.txt file.
 prepare_command = function(folder){
-  contrast = read.table(file.path(folder, "contrast_table.txt"), sep = "\t", header = T)
-  unique_anno = unique(contrast[, c("Model", "Condition", "Category")])
-  unique_ind = lapply(1:dim(unique_anno)[1], function(x) {which(contrast$Model == unique_anno$Model[x] & contrast$Condition == unique_anno$Condition[x] & contrast$Category == unique_anno$Category[x])})
+  contrast = read.table(file.path(folder, "contrast_table.txt"), sep = "\t", header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
+  unique_count_file = unique(contrast[, c("Count_File")])
+  unique_count_file_ind = lapply(1:length(unique_count_file), function(x) {which(contrast$Count_File == unique_count_file[x])})
   
   # cmd_count = unlist(lapply(unique_ind, FUN = cmd_count_prep, contrast = contrast))
-  cmd_count = unlist(lapply(unique_ind[[1]][1], FUN = cmd_count_prep, contrast = contrast))
+  cmd_count = unlist(lapply(unique_count_file_ind, FUN = cmd_count_prep, contrast = contrast))
   file.create(file.path(folder, "run_mageck_count.sh"))
   writeLines(cmd_count, con = file.path(folder, "run_mageck_count.sh"))
+  
+  unique_anno = unique(contrast[, c("Model", "Condition", "Category")])
+  unique_ind = lapply(1:dim(unique_anno)[1], function(x) {which(contrast$Model == unique_anno$Model[x] & contrast$Condition == unique_anno$Condition[x] & contrast$Category == unique_anno$Category[x])})
   
   cmd_rra = unlist(lapply(unique_ind, FUN = cmd_rra_prep, contrast = contrast))
   file.create(file.path(folder, "run_mageck_rra.sh"))
@@ -109,8 +114,10 @@ prepare_command = function(folder){
 #' Prepare folders and bash files to run MAGeCK rra and mle modules.
 #' @param folder path to the study folder which contains one contrast_table.txt file.
 step1_prepare_files = function(folder){
+  print(paste0("Start: step 1 prepare folder and command for ", folder))
   prepare_folder(folder)
   prepare_command(folder)
+  print(paste0("Finish: step 1 prepare folder and command for ", folder))
 }
 # ======================================================= #
 #' Main function, which passes command line args to step1_prepare_files
