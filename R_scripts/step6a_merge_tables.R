@@ -48,10 +48,9 @@ source('utils.R')
 
 # ======================================================= #
 # ======================================================= #
-step6a_merge_tables = function(folder, output_dir){
+step6a_merge_tables = function(folder, output_dir = NULL, output_file = NULL){
   # ===== read gdata and match with contrast_table.txt
-  print(paste0("Start: normalize median lfc for ", folder))
-  if(!dir.exists(output_dir)) dir.create(output_dir, recursive = T)
+  print(paste0("Start: merge normalized median lfc for ", folder))
   
   norm_lfc = list.files(folder, pattern = "normalized_lfc.txt", recursive = T, ignore.case = T, full.names = T)
   
@@ -69,8 +68,26 @@ step6a_merge_tables = function(folder, output_dir){
       # print(head(gdata_merge))
     }
   }
-  write.table(x = gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.txt')), sep = '\t', quote = FALSE, row.names = F, col.names = T)
-  saveRDS(gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.RDS')))
+  
+  if (!is.null(output_file)){
+    if(file.exists(output_file)){
+      gdata_merge_pre = read.table(output_file, header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
+      ind_col = unlist(lapply(gsub("\\+", "\\\\+", colnames(gdata_merge)), FUN = function(x) grep(x, colnames(gdata_merge_pre))))
+      gdata_merge = merge(gdata_merge, gdata_merge_pre[, -ind_col[-1], drop = F], by = "gene", all=T)
+    }else{
+      if(!dir.exists(dirname(output_file))) dir.create(dirname(output_file), recursive = T)
+    }
+    if (grepl(".txt$", output_file)) output_file = gsub(".txt", "", output_file)
+    if (grepl(".RDS$", output_file)) output_file = gsub(".RDS", "", output_file)
+    write.table(x = gdata_merge, file = paste0(output_file, ".txt"), sep = '\t', quote = FALSE, row.names = F, col.names = T)
+    saveRDS(gdata_merge, file = paste0(output_file, ".RDS"))
+  }
+  
+  if (!is.null(output_dir)){
+    if(!dir.exists(output_dir)) dir.create(output_dir, recursive = T)
+    write.table(x = gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.txt')), sep = '\t', quote = FALSE, row.names = F, col.names = T)
+    saveRDS(gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.RDS')))
+  }
   # print(head(gdata_merge))
   # if (length(norm_lfc)>0){
   #   # names(gene_sum) = gene_sum_name
@@ -88,7 +105,7 @@ step6a_merge_tables = function(folder, output_dir){
   #   
   # }
   
-  print(paste0("Finish: merge lfc for ", folder))
+  print(paste0("Finish: merge normalized median lfc for ", folder))
 }
 # ======================================================= #
 # step6_merge_tables(folder = opt$dir, output_dir = opt$output, signature, plot_group)

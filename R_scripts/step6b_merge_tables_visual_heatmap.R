@@ -56,7 +56,7 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
   colnames(LFC_heatmap) = sapply(strsplit(colnames(LFC_heatmap), '_'), FUN = function(x){
     if (length(x) == 8){
       # paste(x[2], x[3], x[4], x[5], x[6],sep = '_')
-      paste(x[2], x[4], x[5], x[6],sep = '_')
+      paste(x[2], x[3], x[4], x[5], x[6],sep = '_')
     }
   })
   rownames(annotation_row) = colnames(LFC_heatmap)
@@ -70,7 +70,15 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
     col_map = colorRamp2(seq(-4, 4, length = 3), c("blue", "#EEEEEE", "red"), space = "RGB")
     draw(Heatmap(df, na_col = "grey", col = col_map, name = "LFC", rect_gp = gpar(col = "white", lwd = 2),
                  cluster_rows = FALSE, cluster_columns = F, row_names_max_width = max_text_width(rownames(df), gp = gpar(fontsize = 12)),
-                 show_column_names = T, show_row_names = T, column_title = paste(unlist(plot_group), collapse = "_") ))
+                 show_column_names = T, show_row_names = T, column_title = paste(unlist(plot_group), collapse = "_"),
+                 cell_fun = function(j, i, x, y, w, h, fill) {
+                   if (!is.na(df[i, j])){
+                     if (abs(df[i, j]) >= 2) {
+                       grid.text("*", x, y)
+                     }
+                   }
+                 }
+                 ))
     dev.off()
   }
 
@@ -79,7 +87,7 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
 # ======================================================= #
 # ======================================================= #
 step6b_merge_tables_visual_heatmap = function(folder, output_dir){
-  print(paste0("Start: normalize lfc QC heatmap for ", folder))
+  print(paste0("Start: normalized lfc QC heatmap for ", folder))
   if(!dir.exists(file.path(output_dir, 'qc_heatmap'))) dir.create(file.path(output_dir, 'qc_heatmap'), recursive = T)
   # if(!dir.exists(file.path(output_dir, 'qc_rankplot'))) dir.create(file.path(output_dir, 'qc_rankplot'), recursive = T)
   # if(!dir.exists(file.path(output_dir, 'qc_tables'))) dir.create(file.path(output_dir, 'qc_tables'), recursive = T)
@@ -87,20 +95,20 @@ step6b_merge_tables_visual_heatmap = function(folder, output_dir){
   gdata_merge = read.table(file.path(output_dir, "all_lfc_normalized.txt"), header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
   # === map positive control genes to merged normalized table
   ind_gene = grep(paste0('^', (paste(posControl, collapse = '$|^')), '$'), gdata_merge$gene)
-  LFC_heatmap = gdata_merge[ind_gene, -1]
+  LFC_heatmap = gdata_merge[ind_gene, -1, drop = FALSE]
   rownames(LFC_heatmap) = gdata_merge[ind_gene, "gene"]
-  LFC_heatmap <- LFC_heatmap[rowMeans(is.na(LFC_heatmap)) <= 0.9,]
+  LFC_heatmap <- LFC_heatmap[rowMeans(is.na(LFC_heatmap)) <= 0.9,, drop = FALSE]
   LFC_heatmap[] <- sapply(LFC_heatmap, as.numeric)
   
   LFC_means <- rowMeans(LFC_heatmap,na.rm = T)
   LFC_heatmap = LFC_heatmap[order(LFC_means, decreasing = T), ]
 
   filter_colSum = colSums(abs(LFC_heatmap), na.rm = TRUE)>0.2
-  LFC_heatmap = LFC_heatmap[, filter_colSum]
+  LFC_heatmap = LFC_heatmap[, filter_colSum, drop = FALSE]
   
   lapply(plotGroup, FUN = norm_lfc_plot_heatmap, output_dir=output_dir, LFC_heatmap=LFC_heatmap)
   
-  print(paste0("Finish: normalize lfc QC heatmap for ", folder))
+  print(paste0("Finish: normalized lfc QC heatmap for ", folder))
   
 }
 # # ======================================================= #

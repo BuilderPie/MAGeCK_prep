@@ -137,13 +137,30 @@ step3c_qc_post_table = function(contrast, geneSum, output="quantile_chebyshev.cs
                      # 'controlGene_median_rank_bottom', 'controlGene_median_rank_top')
                      'controlGene_median_rank')
   # ===== calculate autoQC result
-  autoQC = (tmp2[, 'controlGene_median_rank'] < 0.35) &
-    (tmp2[, '99%'] > 0) &
-    (tmp2[, 'ratio_pos'] < 0.75) &
-    (tmp2[, 'ratio_neg'] < 0.75) &
-    (tmp2[, 'numGenes'] > 100)
+  if(grepl("High", gdata[["annorow"]]$Condition, ignore.case = TRUE) &
+     grepl('Sorting', gdata[["annorow"]]$Category, ignore.case = TRUE)){
+    tmp2_quantile_1 = quantile(gdata[["gdata"]]$Score, probs = seq(0,1,0.01))[2]
+
+    autoQC = (tmp2[, 'controlGene_median_rank'] < 0.35) &
+      (tmp2_quantile_1 < 0) &
+      (tmp2[, 'ratio_pos'] < 0.75) &
+      (tmp2[, 'numGenes'] > 100)
+  } else if (grepl("Low", gdata[["annorow"]]$Condition, ignore.case = TRUE) &
+             grepl('Sorting', gdata[["annorow"]]$Category, ignore.case = TRUE)){
+    autoQC = (tmp2[, 'controlGene_median_rank'] < 0.35) &
+      (tmp2[, '99%'] > 0) &
+      (tmp2[, 'ratio_neg'] < 0.75) &
+      (tmp2[, 'numGenes'] > 100)
+  } else {
+    autoQC = (tmp2[, 'controlGene_median_rank'] < 0.35) &
+      (tmp2[, '99%'] > 0) &
+      (tmp2[, 'ratio_pos'] < 0.75) &
+      (tmp2[, 'ratio_neg'] < 0.75) &
+      (tmp2[, 'numGenes'] > 100)
+  }
   
-  autoQC = ifelse(autoQC, 1, 0)
+  
+  autoQC = ifelse(unname(autoQC), 1, 0)
   tmp2 = cbind(autoQC, tmp2)
   # ===== append QC table to the existing one, or create new one if not existed.
   # print(tmp2)

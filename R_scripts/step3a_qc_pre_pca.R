@@ -71,10 +71,11 @@ step3a_qc_pre_pca = function(contrast){
       control = unlist(strsplit(as.vector(contrast$Control[count_ind]), split = '\\,|\\;'))
       
       rawcount =  file.path(contrast_dir, paste0("rawcount/", contrast$Count_File[count_ind[1]]))
-      rawcount = read.table(rawcount, sep = "\t", header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
+      rawcount = read.table(rawcount, sep = "\t", header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "#", fill=TRUE)
       
       df = as.data.frame(t(rawcount[, c(treatment, control)]))
       df = df[ , colSums(is.na(df)) == 0]
+      
       pca_res <- prcomp(df)
       
       df$condition = c(rep("Treatment", length(treatment)), rep("Control", length(control)))
@@ -87,7 +88,7 @@ step3a_qc_pre_pca = function(contrast){
       ggsave(filename = fileSave_pca, plot = p1, width = 5, height = 4, dpi = 300)
 
       df = as.data.frame((rawcount[, union(treatment, control)]))
-      cor_res = cor(df)
+      cor_res = cor(df, use = "complete.obs")
       png(filename = fileSave_cor, width = (6 + 6*(dim(df)[2])/20), height = (4 + 4*(dim(df)[2])/10), units = 'in', res = 300)
       draw(Heatmap(cor_res, col = colorRamp2(c(min(cor_res, na.rm = T), 1), c("white", "red")), column_title = paste0(fileName), name = "Pearson\nCorr"))
       dev.off()

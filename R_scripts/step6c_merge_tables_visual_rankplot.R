@@ -73,7 +73,7 @@ norm_lfc_plot_rankplot = function(plotGroup, output_dir, gdata_merge, posControl
 # ======================================================= #
 # ======================================================= #
 step6c_merge_tables_visual_rankplot = function(folder, output_dir){
-  print(paste0("Start: normalize lfc QC rankplot for ", folder))
+  print(paste0("Start: normalized lfc QC rankplot for ", folder))
   # if(!dir.exists(file.path(output_dir, 'qc_heatmap'))) dir.create(file.path(output_dir, 'qc_heatmap'), recursive = T)
   if(!dir.exists(file.path(output_dir, 'qc_rankplot'))) dir.create(file.path(output_dir, 'qc_rankplot'), recursive = T)
   # if(!dir.exists(file.path(output_dir, 'qc_tables'))) dir.create(file.path(output_dir, 'qc_tables'), recursive = T)
@@ -82,7 +82,7 @@ step6c_merge_tables_visual_rankplot = function(folder, output_dir){
   # === map positive control genes to merged normalized table
   lapply(plotGroup, norm_lfc_plot_rankplot, output_dir=output_dir, gdata_merge=gdata_merge, posControl=posControl)
   
-  print(paste0("Finish: normalize lfc QC rankplot for ", folder))
+  print(paste0("Finish: normalized lfc QC rankplot for ", folder))
   
 }
 

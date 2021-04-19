@@ -73,9 +73,9 @@ read_geneSum = function(contrast, geneSum){
   ann = strsplit(gsub(".gene_summary.txt", "", basename(geneSum)), '_')
   annorow = contrast[which(contrast$Model == ann[[1]][1] & contrast$Condition == ann[[1]][2] & contrast$Category == ann[[1]][3])[1], ]
   # ===== read gene_summary.txt
-  gdata = read.table(geneSum, header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE)
-  gdata$id = gsub(";.*", "", gdata$id)
-  gdata = ReadRRA(gdata, score = 'lfc')
+  # gdata = read.table(geneSum, header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE)
+  # gdata$id = gsub(";.*", "", gdata$id)
+  gdata = ReadRRA(geneSum, score = 'lfc')
   # ===== correct month related error gene symbol
   month_id = list(c('-sep$', 'SEPTIN'), c('-mar$', 'MARCHF'), c('-dec$', 'DELEC'))
   lapply(month_id, FUN = function(month){
@@ -127,11 +127,13 @@ read_geneSum = function(contrast, geneSum){
 dir_check = function(folder){
   DirName = SubDir = "E"
   tmp = unlist(strsplit(basename(folder), "_"))
-  if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+  if ((length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])) | 
+      (length(tmp == 4) & grepl("TBD", tmp[1], ignore.case = T) & grepl("TBD", tmp[3], ignore.case = T))){
     DirName = basename(folder)
   } else {
     tmp = unlist(strsplit(basename(dirname(folder)), "_"))
-    if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+    if ((length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])) |
+        (length(tmp == 4) & grepl("TBD", tmp[1], ignore.case = T) & grepl("TBD", tmp[3], ignore.case = T))){
       DirName = basename(dirname(folder))
       SubDir = basename(folder)
     }
@@ -146,15 +148,18 @@ dir_check = function(folder){
 dir_check_merge = function(folder){
   DirName = SubDir = "E"
   tmp = unlist(strsplit(basename(folder), "_"))
-  if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+  if ((length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])) |
+      (length(tmp == 4) & grepl("TBD", tmp[1], ignore.case = T) & grepl("TBD", tmp[3], ignore.case = T))){
     DirName = basename(folder)
   } else {
     tmp = unlist(strsplit(basename(dirname(folder)), "_"))
-    if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+    if ((length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])) |
+        (length(tmp == 4) & grepl("TBD", tmp[1], ignore.case = T) & grepl("TBD", tmp[3], ignore.case = T))){
       DirName = basename(dirname(folder))
     } else{
       tmp = unlist(strsplit(basename(dirname(dirname(folder))), "_"))
-      if (length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])){
+      if ((length(tmp == 4) & !grepl("\\D", tmp[1]) & !grepl("\\D", tmp[length(tmp)])) |
+          (length(tmp == 4) & grepl("TBD", tmp[1], ignore.case = T) & grepl("TBD", tmp[3], ignore.case = T))){
         DirName = basename(dirname(dirname(folder)))
         SubDir = basename(dirname(folder))
       }
