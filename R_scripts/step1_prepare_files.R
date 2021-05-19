@@ -43,6 +43,8 @@ prepare_folder = function(folder){
       dir.create(file.path(folder, 'qc'), showWarnings = F)
       dir.create(file.path(folder, 'logs'), showWarnings = F)
       dir.create(file.path(folder, 'results'), showWarnings = F)
+      dir.create(file.path(folder, 'rawcount'), showWarnings = F)
+      dir.create(file.path(folder, 'lib'), showWarnings = F)
       # Sys.chmod(list.dirs(folder, recursive = T), mode = as.character(mode), use_umask = FALSE)
       # Sys.chmod(list.files(folder, recursive = T, full.names = T), mode = as.character(mode), use_umask = FALSE)
 }
@@ -53,8 +55,8 @@ prepare_folder = function(folder){
 #' @param contrast contrast table
 cmd_count_prep = function(unique_count_file_ind, contrast){
   # file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
-  # cmd_count = paste0("mageck count -k rawcount/", contrast$Count_File[unique_ind]," -l lib/library.csv --norm-method ", contrast$Norm_method[unique_ind], " -n count/", file_name)
-  cmd_count = paste0("mageck count -k rawcount/", contrast$Count_File[unique_count_file_ind[1]]," -l lib/library.csv --norm-method ", contrast$Norm_method[1], " -n count/", gsub(".txt", "", contrast$Count_File[unique_count_file_ind[1]]))
+  # cmd_count = paste0("mageck count -k rawcount/", contrast$Count_File[unique_ind]," -l lib/library.csv --norm-method ", contrast$Norm_Method[unique_ind], " -n count/", file_name)
+  cmd_count = paste0("mageck count -k rawcount/", contrast$Count_File[unique_count_file_ind[1]]," -l lib/library.csv --norm-method ", contrast$Norm_Method[1], " -n count/", gsub(".txt", "", contrast$Count_File[unique_count_file_ind[1]]))
   
   return(cmd_count)
 }
@@ -64,10 +66,10 @@ cmd_count_prep = function(unique_count_file_ind, contrast){
 #' @param unique_ind row indices of contrast table for all replicates of one study design.
 #' @param contrast contrast table
 cmd_rra_prep = function(unique_ind, contrast){
-  file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
+  file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Cell_Type"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
   count_name = gsub(".txt", "", contrast$Count_File[unique_ind])
-  # cmd_rra = paste0("mageck test -k count/", file_name, ".count_normalized.txt -c ", contrast$Control[unique_ind], " -t ", contrast$Sample[unique_ind], " --norm-method ", contrast$Norm_method[unique_ind], " -n rra/", file_name)
-  cmd_rra = paste0("mageck test -k count/", count_name, ".count_normalized.txt -c ", contrast$Control[unique_ind], " -t ", contrast$Sample[unique_ind], " --norm-method ", contrast$Norm_method[unique_ind], " -n rra/", file_name)
+  # cmd_rra = paste0("mageck test -k count/", file_name, ".count_normalized.txt -c ", contrast$Control[unique_ind], " -t ", contrast$Sample[unique_ind], " --norm-method ", contrast$Norm_Method[unique_ind], " -n rra/", file_name)
+  cmd_rra = paste0("mageck test -k count/", count_name, ".count_normalized.txt -c ", contrast$Control[unique_ind], " -t ", contrast$Sample[unique_ind], " --norm-method ", contrast$Norm_Method[unique_ind], " -n rra/", file_name)
   
   return(cmd_rra)
 }
@@ -77,10 +79,10 @@ cmd_rra_prep = function(unique_ind, contrast){
 #' @param unique_ind row indices of contrast table for all replicates of one study design.
 #' @param contrast contrast table
 cmd_mle_prep = function(unique_ind, contrast){
-  file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
+  file_name = sapply(X = 1:length(unique_ind), FUN = function(i) paste0(contrast[unique_ind[i], "Model"], "_", contrast[unique_ind[i], "Cell_Type"], "_", contrast[unique_ind[i], "Condition"], "_", contrast[unique_ind[i], "Category"], "_r", i))
   count_name = gsub(".txt", "", contrast$Count_File[unique_ind])
-  # cmd_mle = sapply(X = 1:length(unique_ind), FUN = function(i) paste0("mageck mle -k count/", file_name[i], ".count_normalized.txt -d designmatrix/designmatrix_", i, ".txt", " --norm-method ", contrast$Norm_method[unique_ind[i]], " -n mle/", file_name[i]))
-  cmd_mle = paste0("mageck mle -k count/", count_name, ".count_normalized.txt -d designmatrix/designmatrix_", ".txt", " --norm-method ", contrast$Norm_method[unique_ind], " -n mle/", file_name)
+  # cmd_mle = sapply(X = 1:length(unique_ind), FUN = function(i) paste0("mageck mle -k count/", file_name[i], ".count_normalized.txt -d designmatrix/designmatrix_", i, ".txt", " --norm-method ", contrast$Norm_Method[unique_ind[i]], " -n mle/", file_name[i]))
+  cmd_mle = paste0("mageck mle -k count/", count_name, ".count_normalized.txt -d designmatrix/designmatrix_", ".txt", " --norm-method ", contrast$Norm_Method[unique_ind], " -n mle/", file_name)
   
   return(cmd_mle)
 }

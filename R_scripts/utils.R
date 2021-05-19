@@ -71,7 +71,7 @@ read_geneSum = function(contrast, geneSum){
   # ===== extract annotation row which correspond to gene_summary.txt file
   contrast = read.table(contrast, sep = "\t", header = T, check.names = F)
   ann = strsplit(gsub(".gene_summary.txt", "", basename(geneSum)), '_')
-  annorow = contrast[which(contrast$Model == ann[[1]][1] & contrast$Condition == ann[[1]][2] & contrast$Category == ann[[1]][3])[1], ]
+  annorow = contrast[which(contrast$Model == ann[[1]][1] & contrast$Condition == ann[[1]][3] & contrast$Category == ann[[1]][4])[1], ]
   # ===== read gene_summary.txt
   # gdata = read.table(geneSum, header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE)
   # gdata$id = gsub(";.*", "", gdata$id)
@@ -79,11 +79,10 @@ read_geneSum = function(contrast, geneSum){
   # ===== correct month related error gene symbol
   month_id = list(c('-sep$', 'SEPTIN'), c('-mar$', 'MARCHF'), c('-dec$', 'DELEC'))
   lapply(month_id, FUN = function(month){
-    ind_id = grep(month[1],gdata$Gene, ignore.case = TRUE)
+    ind_id = grep(month[1],gdata$id, ignore.case = TRUE)
     if (length(ind_id)>0){
-      print(gdata$Gene[ind_id])
-      gdata$Gene[ind_id] = sapply(X = strsplit(x = gdata$Gene[ind_id], split = '-'),
-                                  FUN = function (x) {paste0(contrast[2], x[1])})
+      gdata$id[ind_id] <<- unlist(sapply(X = strsplit(x = gdata$id[ind_id], split = '-'),
+                                  FUN = function (x) {paste0(month[2], x[1])}))
     }
   })
   # ===== organize data for Sorting and high / low condition
@@ -97,19 +96,11 @@ read_geneSum = function(contrast, geneSum){
     gdata$Score = -gdata$Score
   }
   # ===== extract positive control genes and convert to hsa symbols
-  if (!is.na(annorow$PosControls)){
-    topnames = unlist(strsplit(as.character(annorow$PosControls), split = "\\,|\\;"))
-    
+  if (any(!is.na(annorow$Pos_Controls))){
+    topnames = unlist(strsplit(as.character(annorow$Pos_Controls), split = "\\,|\\;"))
     if(any(grepl("mouse", annorow$Organism, ignore.case = TRUE))){
       map = TransGeneID(topnames, "symbol", "symbol", fromOrg = "mmu", toOrg = "hsa")
       topnames = unname(map)
-      # ===== in case there is Entrez id (0.2 as cutoff)
-      if (sum(!is.na(as.numeric(gdata$id))) > 0.2*dim(gdata)[1]){
-        num_ind = !is.na(as.numeric(gdata$id))
-        gdata$id[num_ind] = unname(TransGeneID(as.numeric(gdata$id[num_ind]), fromType = "Entrez", toType = "Symbol", fromOrg = "mmu", toOrg = "hsa"))
-      } else{
-        gdata$id = TransGeneID(gdata$id, "symbol", "symbol", fromOrg = "mmu", toOrg = "hsa")
-      }
     }
     if (length(topnames) < 3){
       topnames = c(topnames, "JAK1", "JAK2", "STAT1", "IFNGR2", "TAP1")
@@ -117,6 +108,18 @@ read_geneSum = function(contrast, geneSum){
   } else{
     topnames = c("JAK1", "JAK2", "STAT1", "IFNGR2", "TAP1")
   }
+
+  # ===== transfer gene symnbol from mouse to human
+  if(any(grepl("mouse", annorow$Organism, ignore.case = TRUE))){
+    # ===== in case there is Entrez id (0.2 as cutoff)
+    if (sum(!is.na(as.numeric(gdata$id))) > 0.2*dim(gdata)[1]){
+      num_ind = !is.na(as.numeric(gdata$id))
+      gdata$id[num_ind] = unname(TransGeneID(as.numeric(gdata$id[num_ind]), fromType = "Entrez", toType = "Symbol", fromOrg = "mmu", toOrg = "hsa"))
+    } else{
+      gdata$id = unname(TransGeneID(gdata$id, "symbol", "symbol", fromOrg = "mmu", toOrg = "hsa"))
+    }
+  }
+  
   df_out = list(gdata = gdata, run = run, annorow = annorow, topnames = topnames)
   return(df_out)
 }

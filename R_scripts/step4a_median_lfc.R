@@ -53,20 +53,20 @@ step4a_median_lfc = function(folder, search_type="rra"){
   qc_quantile_chebyshev_raw = qc_quantile_chebyshev = read.csv(file.path(folder, 'qc', 'quantile_chebyshev.csv'), row.names = 1)
   qc_names_raw_df = as.data.frame(do.call(rbind, strsplit(rownames(qc_quantile_chebyshev), "_")))
   qc_names_raw_df = cbind(qc_names_raw_df, qc_quantile_chebyshev_raw$autoQC)
-  colnames(qc_names_raw_df) = c("Model", "Condition", "Category", "Replicate", "run", "autoQC")
+  colnames(qc_names_raw_df) = c("Model", "Cell_Type", "Condition", "Category", "Replicate", "run", "autoQC")
   
   qc_quantile_chebyshev = qc_quantile_chebyshev[qc_quantile_chebyshev$autoQC==1, ]
 
   if (dim(qc_quantile_chebyshev)[1]>0){
     qc_names_df = as.data.frame(do.call(rbind, strsplit(rownames(qc_quantile_chebyshev), "_")))
-    
-    qc_names_unique = apply(unique(qc_names_df[, c(1:3)]),1,paste,collapse="_")
+    qc_names_unique = apply(unique(qc_names_df[, c(1:4)]),1,paste,collapse="_")
     # qc_names_unique = gsub("\\+", "\\\\+", qc_names_unique)
-    
+
     lapply(qc_names_unique, FUN = function(x){
       ind = grep(gsub("\\+", "\\\\+", x), geneSum) # search for + sign, as it needs esccape sign
       if (length(ind) > 0){
         gdata_merge = lapply(geneSum[ind], FUN = read_geneSum, contrast = contrast)
+        # print(gdata_merge[[1]][["gdata"]][1:20,1:3])
         gdata_merge = do.call(rbind, lapply(gdata_merge, function(x) return(x[["gdata"]])))[, 1:2] # delete FDR column
         colnames(gdata_merge) = c("gene", "LFC")
         

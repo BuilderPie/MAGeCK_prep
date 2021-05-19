@@ -61,7 +61,7 @@ step3a_qc_pre_pca = function(contrast){
   main_dir = dir_check(dirname(contrast))[1]
   contrast_dir = dirname(contrast)
   print(paste0("Start: pre QC for ", main_dir))
-  if (file.exists(contrast)){
+  if (file.exists(contrast) & length(dir(file.path(contrast_dir, "rawcount")))>0 & length(dir(file.path(contrast_dir, "lib")))>0 ){
     contrast = read.table(contrast, sep = "\t", header = T, check.names = F)
     unique_count_file = unique(contrast[, c("Count_File")])
     unique_count_file_ind = lapply(1:length(unique_count_file), function(x) {which(contrast$Count_File == unique_count_file[x])})

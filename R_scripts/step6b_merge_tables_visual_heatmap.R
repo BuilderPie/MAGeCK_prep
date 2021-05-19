@@ -50,27 +50,43 @@ source('utils.R')
 # # ======================================================= #
 norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
   annotation_row = data.frame(Category = rep(0, dim(LFC_heatmap)[2]),
+                              CellType = rep(0, dim(LFC_heatmap)[2]),
+                              Cohort = rep(0, dim(LFC_heatmap)[2]),
                               stringsAsFactors = FALSE)
   annotation_row$Category = sapply(strsplit(colnames(LFC_heatmap), '_'), FUN = function(x) x[length(x)-1])
+  annotation_row$CellType = sapply(strsplit(colnames(LFC_heatmap), '_'), FUN = function(x) x[length(x)-3])
+  annotation_row$Cohort = factor(colnames(LFC_heatmap), levels = colnames(LFC_heatmap))
   # col_tmp = colnames(LFC_heatmap)
   colnames(LFC_heatmap) = sapply(strsplit(colnames(LFC_heatmap), '_'), FUN = function(x){
-    if (length(x) == 8){
+    if (length(x) == 9){
       # paste(x[2], x[3], x[4], x[5], x[6],sep = '_')
-      paste(x[2], x[3], x[4], x[5], x[6],sep = '_')
+      paste(x[2], x[3], x[4], x[5], x[6], x[7],sep = '_')
     }
   })
   rownames(annotation_row) = colnames(LFC_heatmap)
   LFC_heatmap[is.na(LFC_heatmap)] <- as.double("NA")
-  ind = unlist(lapply(plot_group, function(x) grep(x, annotation_row$Category)))
+  ind = unlist(lapply(plot_group, function(x) grep(x, annotation_row$Category, ignore.case = T)))
+  ind_immune = ind[grep("Immune-", annotation_row$CellType[ind], ignore.case = T)]
+  ind_cancer = ind[!grepl("Immune-", annotation_row$CellType[ind], ignore.case = T)]
 
-  if (length(ind > 0)){
-    df = t(LFC_heatmap[, ind, drop = FALSE])
-    png(filename = file.path(output_dir, 'qc_heatmap', paste0("Heatmap_", paste(unlist(plot_group), collapse = "_"), ".png")),
-        width = 12, height = ifelse(length(ind) < 12, 1.8+0.3*length(ind), 0.5*length(ind)), units = 'in', res = 300)
-    col_map = colorRamp2(seq(-4, 4, length = 3), c("blue", "#EEEEEE", "red"), space = "RGB")
-    draw(Heatmap(df, na_col = "grey", col = col_map, name = "LFC", rect_gp = gpar(col = "white", lwd = 2),
-                 cluster_rows = FALSE, cluster_columns = F, row_names_max_width = max_text_width(rownames(df), gp = gpar(fontsize = 12)),
+  if (length(ind_immune > 0)){
+    df = t(LFC_heatmap[, ind_immune, drop = FALSE])
+    png(filename = file.path(output_dir, 'qc_heatmap', paste0("Heatmap_Immune_", paste(unlist(plot_group), collapse = "_"), ".png")),
+        width = 12, height = ifelse(length(ind_immune) < 12, 1.8+0.3*length(ind_immune), 0.5*length(ind_immune)), units = 'in', res = 300)
+
+    heatmap_cols = colorRamp2(seq(-4, 4, length = 3), c("blue", "#EEEEEE", "red"), space = "RGB")
+    row_ha = rowAnnotation(Category = annotation_row$Category[ind_immune], CellType = annotation_row$CellType[ind_immune])
+    row_labels = unlist(lapply(as.character(annotation_row$Cohort[ind_immune]), FUN = function(x){
+      tmp = unlist(strsplit(x, split = "_"))
+      # return(paste(tmp[2],tmp[4],tmp[5], tmp[6], sep = "_"))
+      return(paste(tmp[2],tmp[5], tmp[7], sep = "_"))
+    }))
+
+    draw(Heatmap(df, na_col = "grey", col = heatmap_cols, name = "LFC", rect_gp = gpar(col = "white", lwd = 2),
+                 cluster_rows = FALSE, cluster_columns = F, row_names_max_width = max_text_width(row_labels, gp = gpar(fontsize = 12)),
                  show_column_names = T, show_row_names = T, column_title = paste(unlist(plot_group), collapse = "_"),
+                 left_annotation = row_ha,
+                 row_labels = row_labels,
                  cell_fun = function(j, i, x, y, w, h, fill) {
                    if (!is.na(df[i, j])){
                      if (abs(df[i, j]) >= 2) {
@@ -79,6 +95,35 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
                    }
                  }
                  ))
+    dev.off()
+  }
+  
+  if (length(ind_cancer > 0)){
+    df = t(LFC_heatmap[, ind_cancer, drop = FALSE])
+    png(filename = file.path(output_dir, 'qc_heatmap', paste0("Heatmap_Cancer_", paste(unlist(plot_group), collapse = "_"), ".png")),
+        width = 12, height = ifelse(length(ind_cancer) < 12, 1.8+0.3*length(ind_cancer), 0.5*length(ind_cancer)), units = 'in', res = 300)
+    
+    heatmap_cols = colorRamp2(seq(-4, 4, length = 3), c("blue", "#EEEEEE", "red"), space = "RGB")
+    row_ha = rowAnnotation(Category = annotation_row$Category[ind_cancer], CellType = annotation_row$CellType[ind_cancer])
+    row_labels = unlist(lapply(as.character(annotation_row$Cohort[ind_cancer]), FUN = function(x){
+      tmp = unlist(strsplit(x, split = "_"))
+      # return(paste(tmp[2],tmp[4],tmp[5], tmp[6], sep = "_"))
+      return(paste(tmp[2],tmp[5], tmp[7], sep = "_"))
+    }))
+    
+    draw(Heatmap(df, na_col = "grey", col = heatmap_cols, name = "LFC", rect_gp = gpar(col = "white", lwd = 2),
+                 cluster_rows = FALSE, cluster_columns = F, row_names_max_width = max_text_width(row_labels, gp = gpar(fontsize = 12)),
+                 show_column_names = T, show_row_names = T, column_title = paste(unlist(plot_group), collapse = "_"),
+                 left_annotation = row_ha,
+                 row_labels = row_labels,
+                 cell_fun = function(j, i, x, y, w, h, fill) {
+                   if (!is.na(df[i, j])){
+                     if (abs(df[i, j]) >= 2) {
+                       grid.text("*", x, y)
+                     }
+                   }
+                 }
+    ))
     dev.off()
   }
 

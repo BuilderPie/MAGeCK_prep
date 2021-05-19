@@ -50,8 +50,14 @@ load_gdata_median = function(gdata_median, max_limit){
   # }else{
     quant_99 = quantile(gdata$LFC, probs = seq(0,1,0.01))[100]
     # quant_99 = max(abs(gdata$LFC), na.rm = T)
-    if (quant_99 < 1e-3){
-      quant_99 = quantile(gdata$LFC[gdata$LFC!=0], probs = seq(0,1,0.01))[100]
+    if(grepl("low", gdata_median, ignore.case = TRUE) & grepl('Sorting', gdata_median, ignore.case = TRUE)){
+      quant_99 = abs(quantile(gdata$LFC, probs = seq(0,1,0.01))[2])
+    }
+    if ((quant_99<1e-3) & (quant_99>0)){
+      quant_99 = quantile(gdata$LFC[gdata$LFC>0], probs = seq(0,1,0.01))[100]
+    }
+    if ((quant_99>-1e-3) & (quant_99<0)){
+      quant_99 = abs(quantile(gdata$LFC[gdata$LFC<0], probs = seq(0,1,0.01))[2])
     }
     gdata$LFC = gdata$LFC * max_limit / quant_99
   # }

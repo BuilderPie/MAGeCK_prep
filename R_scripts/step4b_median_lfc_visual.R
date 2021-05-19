@@ -57,17 +57,22 @@ step4b_median_lfc_visual = function(folder, search_type="rra"){
     contrast = read.table(contrast, sep = "\t", header = T, check.names = F)
     
     lapply(1:length(gdata_median), FUN = function(x){
-      ind = which(gdata_median_df[x,1] == contrast$Model & gdata_median_df[x,2] == contrast$Condition & gdata_median_df[x,3] == contrast$Category)
-      
-      df = read.table(gdata_median[x], header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE)
-      topnames = unlist(strsplit(as.character(contrast[ind, "PosControls"]), split = "\\,|\\;"))
-      if(any(grepl("mouse", contrast[ind, "Organism"], ignore.case = TRUE))){
-        topnames = unname(TransGeneID(topnames, "symbol", "symbol", fromOrg = "mmu", toOrg = "hsa"))
+      ind = which(gdata_median_df[x,1] == contrast$Model & gdata_median_df[x,3] == contrast$Condition & gdata_median_df[x,4] == contrast$Category)
+      if (any(!is.na(contrast[ind, "Pos_Controls"]))){
+        topnames = unique(unlist(strsplit(as.character(contrast[ind, "Pos_Controls"]), split = "\\,|\\;")))
+
+        if(any(grepl("mouse", contrast[ind, "Organism"], ignore.case = TRUE))){
+          topnames = unname(TransGeneID(topnames, "symbol", "symbol", fromOrg = "mmu", toOrg = "hsa"))
+        }
+        if (length(topnames) < 3){
+          topnames = c(topnames, "JAK1", "JAK2", "STAT1", "IFNGR2", "TAP1")
+        }
+      } else{
+        topnames = c("JAK1", "JAK2", "STAT1", "IFNGR2", "TAP1")
       }
-      if (length(topnames) < 3){
-        topnames_merge = c(topnames, "JAK1", "JAK2", "STAT1", "IFNGR2", "TAP1")
-      }
+
       # ===== visualize
+      df = read.table(gdata_median[x], header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE)
       rankdata = df$LFC
       names(rankdata) = df$gene
       fileName = paste0(apply(gdata_median_df[x,1:4] , 1 , paste , collapse = "_" ), "_median_lfc_rankPlot.png")

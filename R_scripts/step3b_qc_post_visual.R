@@ -20,6 +20,7 @@ load_package = function(pkgs){
 # load_package(c('optparse'))
 load_package(c('ggplot2'))
 load_package(c('ggrepel'))
+load_package(c('tidyverse'))
 # load_package(c('ComplexHeatmap'))
 # load_package(c('ggfortify'))
 # load_package(c('circlize'))
@@ -97,6 +98,20 @@ step3b_qc_post_visual = function(contrast, geneSum){
     theme(text = element_text(size=6))
   ggsave(plot = p3, filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_histogram.png")),
          width = 3, height = 1.8, units = 'in', dpi = 300)
+  # ===== histogram for rawcount.count_normalized.txt
+  rawcount_normalized = dir(path = file.path(dirname(contrast), "count"), pattern = "_normalized.txt", full.names = T)
+  if (length(rawcount_normalized)>=1){
+    ind_rawcount = grep(gsub(pattern = ".txt", "", gdata[["annorow"]]$Count_File),rawcount_normalized)
+    rawcount_normalized = rawcount_normalized[ind_rawcount]
+    
+    rawcount_normalized = read.table(file=rawcount_normalized, header = T, sep = "\t", check.names = F, stringsAsFactors = F, quote="")
+    rawcount_normalized = rawcount_normalized[, -grep(pattern = "Gene|sgRNA", x = colnames(rawcount_normalized), ignore.case = T)]
+    p4 = ggplot(pivot_longer(data = rawcount_normalized, cols = colnames(rawcount_normalized), values_to = "Normalized_LFC"), aes(x = Normalized_LFC)) +
+      geom_histogram(fill = "white", colour = "black", bins = 60) +
+      facet_wrap(name ~ ., scales="free", ncol = 2)
+    ggsave(plot = p4, filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_histogram_rawcount_normalized.png")),
+           units = 'in', dpi = 300)
+  }
   # =====
   print(paste0("Finish: post QC visual for ", geneSum))
 }

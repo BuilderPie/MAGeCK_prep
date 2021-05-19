@@ -46,14 +46,16 @@ step2_run_mageck_vispr = function(folder, run){
   # if (any(grepl("mle", run, ignore.case = T))) system(paste0("bash ", file.path(folder, "run_mageck_mle.sh")))
   
   # bash method with setwd()
-  cur_wd = getwd()
-  setwd(folder)
-  
-  system(paste0("bash run_mageck_count.sh"))
-  if (any(grepl("rra", run, ignore.case = T))) system(paste0("bash run_mageck_rra.sh"))
-  if (any(grepl("mle", run, ignore.case = T))) system(paste0("bash run_mageck_mle.sh"))
-  
-  setwd(cur_wd)
+  if (length(dir(file.path(folder, "rawcount")))>0 & length(dir(file.path(folder, "lib")))>0 ){
+    cur_wd = getwd()
+    setwd(folder)
+    
+    system(paste0("bash run_mageck_count.sh"))
+    if (any(grepl("rra", run, ignore.case = T))) system(paste0("bash run_mageck_rra.sh"))
+    if (any(grepl("mle", run, ignore.case = T))) system(paste0("bash run_mageck_mle.sh"))
+    
+    setwd(cur_wd)
+  }
 }
 # ======================================================= #
 #' Main function, which passes command line args to step1_prepare_files

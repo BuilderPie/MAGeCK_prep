@@ -57,9 +57,9 @@ step0_call_functions = function(folder, rPath, output_dir=NULL, output_file=NULL
   contrast = list.files(folder, pattern = "contrast_table.txt", recursive = T, full.names = T, ignore.case = T)
   
   if (length(contrast) ==0) stop("no active studies has been found")
-  for (i in contrast){
+  # for (i in contrast){
     # step1_prepare_files(dirname(i))
-  }
+  # }
   
   
   # ============================== #
@@ -81,35 +81,38 @@ step0_call_functions = function(folder, rPath, output_dir=NULL, output_file=NULL
   #   # tempMatrix #Equivalent to finalMatrix = cbind(finalMatrix, tempMatrix)
   # }
   # ====================================== #
-  for (i in contrast){
+  # for (i in contrast){
     # step2_run_mageck_vispr(dirname(i), run = "rra")
     # step3a_qc_pre_pca(contrast = i)
-  }
+  # }
   
   # foreach(i=1:length(contrast)) %dopar% {
     # step2_run_mageck_vispr(dirname(contrast[i]), run = "rra")
     # step3a_qc_pre_pca(contrast = contrast[i])
   # }
-  geneSumList = lapply(contrast, FUN = function(x) {
-    list.files(dirname(x), pattern = "gene_summary.txt", recursive = T, full.names = T, ignore.case = T)
-  })
+  
+  
+  # geneSumList = lapply(contrast, FUN = function(x) {
+  #   list.files(dirname(x), pattern = "gene_summary.txt", recursive = T, full.names = T, ignore.case = T)
+  # })
 
-  for (i in 1:length(geneSumList)){
-    if (length(geneSumList[[i]]) > 0){
-      geneSum = geneSumList[[i]]
+  # for (i in 1:length(geneSumList)){
+  #   if (length(geneSumList[[i]]) > 0){
+  #     geneSum = geneSumList[[i]]
       # lapply(geneSum, FUN = step3b_qc_post_visual, contrast = contrast[i])
       # lapply(geneSum, FUN = step3c_qc_post_table, contrast = contrast[i])
-    }
-  }
-
-  for (i in 1:length(contrast)){
-    # step4a_median_lfc(folder = dirname(contrast[i]))
-    # step4b_median_lfc_visual(folder = dirname(contrast[i]))
-    # step5_normalize_lfc(folder = dirname(contrast[i]), max_limit = 2)
-  }
+  #   }
+  # }
+  
+  # for (i in 1:length(contrast)){
+  #   step4a_median_lfc(folder = dirname(contrast[i]))
+  #   step4b_median_lfc_visual(folder = dirname(contrast[i]))
+  #   step5_normalize_lfc(folder = dirname(contrast[i]), max_limit = 2)
+  # }
+  
 
   
-  step6a_merge_tables(folder = folder, output_dir = output_dir, output_file = output_file)
+  # step6a_merge_tables(folder = folder, output_dir = output_dir, output_file = output_file)
 
   if (!is.null(output_file)){
     step6b_merge_tables_visual_heatmap(folder = folder, output_dir = dirname(output_file))
