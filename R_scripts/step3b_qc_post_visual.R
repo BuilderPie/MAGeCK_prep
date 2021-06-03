@@ -60,7 +60,7 @@ step3b_qc_post_visual = function(contrast, geneSum){
   
   # ===== volcano plot
   VolcanoView(gdata[["gdata"]], x = "Score", y = "FDR", Label = "id", main = fileTitle,
-              top = 0, topnames = gdata[["topnames"]],
+              top = 5, topnames = gdata[["topnames"]],
               filename = file.path(dirname(dirname(geneSum)), 'qc', paste0(fileName, "_volcanoPlot.png")),
               width = 3, height = 1.8)
   # ===== rank plot

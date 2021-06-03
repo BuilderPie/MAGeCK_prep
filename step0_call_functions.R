@@ -58,7 +58,7 @@ step0_call_functions = function(folder, rPath, output_dir=NULL, output_file=NULL
   
   if (length(contrast) ==0) stop("no active studies has been found")
   for (i in contrast){
-    # step1_prepare_files(dirname(i))
+    step1_prepare_files(dirname(i))
   }
   
   
@@ -82,8 +82,8 @@ step0_call_functions = function(folder, rPath, output_dir=NULL, output_file=NULL
   # }
   # ====================================== #
   for (i in contrast){
-    # step2_run_mageck_vispr(dirname(i), run = "rra")
-    # step3a_qc_pre_pca(contrast = i)
+    step2_run_mageck_vispr(dirname(i), run = "rra")
+    step3a_qc_pre_pca(contrast = i)
   }
   
   # foreach(i=1:length(contrast)) %dopar% {
@@ -97,15 +97,15 @@ step0_call_functions = function(folder, rPath, output_dir=NULL, output_file=NULL
   for (i in 1:length(geneSumList)){
     if (length(geneSumList[[i]]) > 0){
       geneSum = geneSumList[[i]]
-      # lapply(geneSum, FUN = step3b_qc_post_visual, contrast = contrast[i])
-      # lapply(geneSum, FUN = step3c_qc_post_table, contrast = contrast[i])
+      lapply(geneSum, FUN = step3b_qc_post_visual, contrast = contrast[i])
+      lapply(geneSum, FUN = step3c_qc_post_table, contrast = contrast[i])
     }
   }
 
   for (i in 1:length(contrast)){
-    # step4a_median_lfc(folder = dirname(contrast[i]))
-    # step4b_median_lfc_visual(folder = dirname(contrast[i]))
-    # step5_normalize_lfc(folder = dirname(contrast[i]), max_limit = 2)
+    step4a_median_lfc(folder = dirname(contrast[i]))
+    step4b_median_lfc_visual(folder = dirname(contrast[i]))
+    step5_normalize_lfc(folder = dirname(contrast[i]), max_limit = 2)
   }
 
   

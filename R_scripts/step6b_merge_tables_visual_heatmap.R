@@ -60,7 +60,7 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
   colnames(LFC_heatmap) = sapply(strsplit(colnames(LFC_heatmap), '_'), FUN = function(x){
     if (length(x) == 9){
       # paste(x[2], x[3], x[4], x[5], x[6],sep = '_')
-      paste(x[2], x[3], x[4], x[5], x[6], x[7],sep = '_')
+      paste(x[2], x[3], x[4], x[5], x[6], x[7], x[9],sep = '_')
     }
   })
   rownames(annotation_row) = colnames(LFC_heatmap)
