@@ -87,7 +87,7 @@ step4a_median_lfc = function(folder, search_type="rra"){
   }
   
   
-  # ===== extend contrast table and save as tmp file for bext step merge
+  # ===== extend contrast table and save as tmp file for next step merge
 
   dir_info =  t(as.vector(dir_check(folder)))
   contrast = read.table(contrast, sep = "\t", header = T, check.names = F)

@@ -47,8 +47,8 @@ source('utils.R')
 # 
 # # ======================================================= #
 # # ======================================================= #
-norm_lfc_plot_rankplot = function(plotGroup, output_dir, gdata_merge, posControl){
-  each_rankplot = function(ind, output_dir, gdata_merge, posControl, ann_category){
+norm_lfc_plot_rankplot = function(plotGroup, output_dir, gdata_merge, posControl, topNum, namePre){
+  each_rankplot = function(ind, output_dir, gdata_merge, posControl, ann_category, topNum, namePre){
     rankdata = as.numeric(gdata_merge[, ind])
     names(rankdata) = gdata_merge$gene
     rankdata = rankdata[!is.na(rankdata)]
@@ -57,8 +57,8 @@ norm_lfc_plot_rankplot = function(plotGroup, output_dir, gdata_merge, posControl
     ind_underscore = gregexpr(pattern ='_',fileName)
     fileTitle = sub(paste0("^(.{",ind_underscore[[1]][4]-1,"})."), "\\1\n", fileName)
     RankView(rankdata = rankdata, main = fileTitle,
-             top = 0, bottom = 0, genelist = posControl,
-             filename = file.path(output_dir, 'qc_rankplot', paste0(ann_category[ind], "_", fileName, ".png")),
+             top = topNum, bottom = topNum, genelist = posControl,
+             filename = file.path(output_dir, 'qc_rankplot', paste0(namePre, ann_category[ind], "_", fileName, ".png")),
              width = 3, height = 1.8)
   }
   
@@ -66,7 +66,7 @@ norm_lfc_plot_rankplot = function(plotGroup, output_dir, gdata_merge, posControl
 
   ind = unlist(lapply(plotGroup, function(x) grep(x, ann_category)))
   if (length(ind > 0)){
-    lapply(ind, each_rankplot, output_dir = output_dir, gdata_merge = gdata_merge, posControl = posControl, ann_category = ann_category)
+    lapply(ind, each_rankplot, output_dir = output_dir, gdata_merge = gdata_merge, posControl = posControl, ann_category = ann_category, topNum = topNum, namePre = namePre)
   }
 
 }
@@ -80,7 +80,17 @@ step6c_merge_tables_visual_rankplot = function(folder, output_dir){
   
   gdata_merge = read.table(file.path(output_dir, "all_lfc_normalized.txt"), header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
   # === map positive control genes to merged normalized table
-  lapply(plotGroup, norm_lfc_plot_rankplot, output_dir=output_dir, gdata_merge=gdata_merge, posControl=posControl)
+  if (dim(gdata_merge)[2]<5){
+    lapply(plotGroup, norm_lfc_plot_rankplot, output_dir=output_dir, gdata_merge=gdata_merge, posControl=posControl, topNum = 0, namePre = "normalized_default_topgenes_")
+    lapply(plotGroup, norm_lfc_plot_rankplot, output_dir=output_dir, gdata_merge=gdata_merge, posControl='', topNum = 15, namePre = "normalized_user_topgenes_")
+    
+    gdata_median_merge = read.table(file.path(output_dir, "all_lfc_median.txt"), header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
+    lapply(plotGroup, norm_lfc_plot_rankplot, output_dir=output_dir, gdata_merge=gdata_median_merge, posControl=posControl, topNum = 0, namePre = "median_default_topgenes_")
+    lapply(plotGroup, norm_lfc_plot_rankplot, output_dir=output_dir, gdata_merge=gdata_median_merge, posControl='', topNum = 15, namePre = "median_user_topgenes_")
+    
+  } else{
+    lapply(plotGroup, norm_lfc_plot_rankplot, output_dir=output_dir, gdata_merge=gdata_merge, posControl=posControl, topNum = 5, namePre = "")
+  }
   
   print(paste0("Finish: normalized lfc QC rankplot for ", folder))
   

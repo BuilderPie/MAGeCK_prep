@@ -53,7 +53,8 @@ step6a_merge_tables = function(folder, output_dir = NULL, output_file = NULL){
   print(paste0("Start: merge normalized median lfc for ", folder))
   
   norm_lfc = list.files(folder, pattern = "normalized_lfc.txt", recursive = T, ignore.case = T, full.names = T)
-  
+  median_lfc = list.files(folder, pattern = "median_lfc_output.txt", recursive = T, ignore.case = T, full.names = T)
+  # ===== normalized lfc files for each study
   gdata_merge= c()
   for(file in norm_lfc){
     gdata = read.table(file, header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE, check.names = F)
@@ -68,7 +69,19 @@ step6a_merge_tables = function(folder, output_dir = NULL, output_file = NULL){
       # print(head(gdata_merge))
     }
   }
-  
+  # ===== un-normalized lfc files for each study for test purposes
+  gdata_median_merge= c() 
+  for(file in median_lfc){
+    gdata = read.table(file, header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE, check.names = F)
+    colnames(gdata)[2:dim(gdata)[2]] = paste0(dir_check_merge(dirname(file))[1], "_",colnames(gdata)[2:dim(gdata)[2]])
+    if (length(gdata_median_merge)==0) {
+      gdata_median_merge = gdata
+    }
+    else{
+      gdata_median_merge = merge(gdata_median_merge, gdata, by = "gene", all=T)
+    }
+  }
+  # ===== combine new data to existing files
   if (!is.null(output_file)){
     if(file.exists(output_file)){
       gdata_merge_pre = read.table(output_file, header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
@@ -87,6 +100,9 @@ step6a_merge_tables = function(folder, output_dir = NULL, output_file = NULL){
     if(!dir.exists(output_dir)) dir.create(output_dir, recursive = T)
     write.table(x = gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.txt')), sep = '\t', quote = FALSE, row.names = F, col.names = T)
     saveRDS(gdata_merge, file = file.path(output_dir, paste0('all_lfc_normalized.RDS')))
+    
+    write.table(x = gdata_median_merge, file = file.path(output_dir, paste0('all_lfc_median.txt')), sep = '\t', quote = FALSE, row.names = F, col.names = T)
+    saveRDS(gdata_median_merge, file = file.path(output_dir, paste0('all_lfc_median.RDS')))
   }
   # print(head(gdata_merge))
   # if (length(norm_lfc)>0){

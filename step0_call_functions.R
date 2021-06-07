@@ -81,15 +81,15 @@ step0_call_functions = function(folder, rPath, output_dir=NULL, output_file=NULL
   #   # tempMatrix #Equivalent to finalMatrix = cbind(finalMatrix, tempMatrix)
   # }
   # ====================================== #
-  for (i in contrast){
-    step2_run_mageck_vispr(dirname(i), run = "rra")
-    step3a_qc_pre_pca(contrast = i)
-  }
-  
-  # foreach(i=1:length(contrast)) %dopar% {
-    # step2_run_mageck_vispr(dirname(contrast[i]), run = "rra")
-    # step3a_qc_pre_pca(contrast = contrast[i])
+  # for (i in contrast){
+  #   step2_run_mageck_vispr(dirname(i), run = "rra")
+  #   step3a_qc_pre_pca(contrast = i)
   # }
+  # 
+  foreach(i=1:length(contrast)) %dopar% {
+  step2_run_mageck_vispr(dirname(contrast[i]), run = "rra")
+  step3a_qc_pre_pca(contrast = contrast[i])
+  }
   geneSumList = lapply(contrast, FUN = function(x) {
     list.files(dirname(x), pattern = "gene_summary.txt", recursive = T, full.names = T, ignore.case = T)
   })

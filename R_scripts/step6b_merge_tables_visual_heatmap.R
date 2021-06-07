@@ -48,7 +48,7 @@ source('utils.R')
 
 # # ======================================================= #
 # # ======================================================= #
-norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
+norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap, preName){
   annotation_row = data.frame(Category = rep(0, dim(LFC_heatmap)[2]),
                               CellType = rep(0, dim(LFC_heatmap)[2]),
                               Cohort = rep(0, dim(LFC_heatmap)[2]),
@@ -71,7 +71,7 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
 
   if (length(ind_immune > 0)){
     df = t(LFC_heatmap[, ind_immune, drop = FALSE])
-    png(filename = file.path(output_dir, 'qc_heatmap', paste0("Heatmap_Immune_", paste(unlist(plot_group), collapse = "_"), ".png")),
+    png(filename = file.path(output_dir, 'qc_heatmap', paste0(preName, "_Immune_", paste(unlist(plot_group), collapse = "_"), ".png")),
         width = 12, height = ifelse(length(ind_immune) < 12, 1.8+0.3*length(ind_immune), 0.5*length(ind_immune)), units = 'in', res = 300)
 
     heatmap_cols = colorRamp2(seq(-4, 4, length = 3), c("blue", "#EEEEEE", "red"), space = "RGB")
@@ -100,7 +100,7 @@ norm_lfc_plot_heatmap = function(plot_group, output_dir, LFC_heatmap){
   
   if (length(ind_cancer > 0)){
     df = t(LFC_heatmap[, ind_cancer, drop = FALSE])
-    png(filename = file.path(output_dir, 'qc_heatmap', paste0("Heatmap_Cancer_", paste(unlist(plot_group), collapse = "_"), ".png")),
+    png(filename = file.path(output_dir, 'qc_heatmap', paste0(preName, "_Cancer_", paste(unlist(plot_group), collapse = "_"), ".png")),
         width = 12, height = ifelse(length(ind_cancer) < 12, 1.8+0.3*length(ind_cancer), 0.5*length(ind_cancer)), units = 'in', res = 300)
     
     heatmap_cols = colorRamp2(seq(-4, 4, length = 3), c("blue", "#EEEEEE", "red"), space = "RGB")
@@ -146,12 +146,30 @@ step6b_merge_tables_visual_heatmap = function(folder, output_dir){
   LFC_heatmap[] <- sapply(LFC_heatmap, as.numeric)
   
   LFC_means <- rowMeans(LFC_heatmap,na.rm = T)
-  LFC_heatmap = LFC_heatmap[order(LFC_means, decreasing = T), ]
+  LFC_heatmap = LFC_heatmap[order(LFC_means, decreasing = T), ,drop = FALSE]
 
   filter_colSum = colSums(abs(LFC_heatmap), na.rm = TRUE)>0.2
   LFC_heatmap = LFC_heatmap[, filter_colSum, drop = FALSE]
   
-  lapply(plotGroup, FUN = norm_lfc_plot_heatmap, output_dir=output_dir, LFC_heatmap=LFC_heatmap)
+  lapply(plotGroup, FUN = norm_lfc_plot_heatmap, output_dir=output_dir, LFC_heatmap=LFC_heatmap, preName = "Normalized_Heatmap")
+  # ====================================== #
+  # ====================================== #
+  
+  gdata_median_merge = read.table(file.path(output_dir, "all_lfc_median.txt"), header = TRUE, na.strings = "Empty", stringsAsFactors = FALSE, check.names = F,  quote = "", comment.char = "")
+  # === map positive control genes to merged median table
+  ind_gene = grep(paste0('^', (paste(posControl, collapse = '$|^')), '$'), gdata_median_merge$gene)
+  LFC_heatmap = gdata_median_merge[ind_gene, -1, drop = FALSE]
+  rownames(LFC_heatmap) = gdata_median_merge[ind_gene, "gene"]
+  LFC_heatmap <- LFC_heatmap[rowMeans(is.na(LFC_heatmap)) <= 0.9,, drop = FALSE]
+  LFC_heatmap[] <- sapply(LFC_heatmap, as.numeric)
+  
+  LFC_means <- rowMeans(LFC_heatmap,na.rm = T)
+  LFC_heatmap = LFC_heatmap[order(LFC_means, decreasing = T), ,drop = FALSE]
+  
+  filter_colSum = colSums(abs(LFC_heatmap), na.rm = TRUE)>0.2
+  LFC_heatmap = LFC_heatmap[, filter_colSum, drop = FALSE]
+  
+  lapply(plotGroup, FUN = norm_lfc_plot_heatmap, output_dir=output_dir, LFC_heatmap=LFC_heatmap, preName = "Median_Heatmap")
   
   print(paste0("Finish: normalized lfc QC heatmap for ", folder))
   

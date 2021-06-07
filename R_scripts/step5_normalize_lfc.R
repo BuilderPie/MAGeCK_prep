@@ -39,6 +39,7 @@ source('utils.R')
 # }
 # ======================================================= #
 # ======================================================= #
+# load preprocessed median-ed gdata file and perform normalization
 load_gdata_median = function(gdata_median, max_limit){
   gdata = read.table(gdata_median, header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE)
   max_limit = as.numeric(max_limit)
@@ -63,7 +64,12 @@ load_gdata_median = function(gdata_median, max_limit){
   # }
   return(gdata)
 }
-
+# ======================================================= #
+# load raw gdata_median without performing normalization
+load_gdata_median_raw = function(gdata_median){
+  gdata = read.table(gdata_median, header = TRUE, sep = "\t", na.strings = "Empty", stringsAsFactors = FALSE)
+  return(gdata)
+}
 # ======================================================= #
 # ======================================================= #
 step5_normalize_lfc = function(folder, max_limit){
@@ -77,7 +83,13 @@ step5_normalize_lfc = function(folder, max_limit){
     colnames(gdata_merge)[-1] = gsub(pattern = "_median_lfc.txt", "", basename(gdata_median))
     write.table(x = gdata_merge, file = file.path(folder, "results", paste0(basename(folder), '_normalized_lfc.txt')),
                 sep = '\t', quote = FALSE, row.names = F, col.names = T)
-
+    
+    # export raw gdata_median without normalization, for testing purposes
+    # jutst need to change the file name and column names to comply with next steps
+    gdata_merge_2 = Reduce(function(x, y) merge(x, y, by="gene"),  lapply(gdata_median, FUN = load_gdata_median_raw))
+    colnames(gdata_merge_2)[-1] = gsub(pattern = "_median_lfc.txt", "", basename(gdata_median))
+    write.table(x = gdata_merge_2, file = file.path(folder, "results", paste0(basename(folder), '_median_lfc_output.txt')),
+                sep = '\t', quote = FALSE, row.names = F, col.names = T)
   }
 
   print(paste0("Finish: normalize median lfc for ", folder))

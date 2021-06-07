@@ -211,7 +211,7 @@ RankView = function (rankdata, genelist = NULL, top = 10, bottom = 10, cutoff = 
   p = p + labs(x = "LFC", y = "Rank", title = main)
   p = p + theme(legend.position = "none")
   if (!is.null(filename)) {
-    ggsave(plot = p, filename = filename, units = "in", width = width, height = height, ...)
+    ggsave(plot = p, filename = filename, units = "in", width = width, height = height, dpi = 600, ...)
   }
   return(p)
 }
@@ -270,7 +270,7 @@ VolcanoView = function (df, x = "logFC", y = "adj.P.Val", Label = NA, top = 5,
   p = p + theme(legend.position = "none")
   if (!is.null(filename)) {
     ggsave(plot = p, filename = filename, width = width, 
-           height = height, units = "in", ...)
+           height = height, units = "in", dpi = 600, ...)
   }
   return(p)
 }
