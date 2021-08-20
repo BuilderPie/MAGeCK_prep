@@ -60,7 +60,7 @@ step0_call_functions = function(folder, rPath, output_dir=NULL, output_file=NULL
   for (i in contrast){
     step1_prepare_files(dirname(i))
   }
-  
+
   
   # ============================== #
   # ======= test for parallel
